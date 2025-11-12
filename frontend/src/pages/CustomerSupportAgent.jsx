@@ -83,38 +83,38 @@ const CustomerSupportAgent = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 p-8 lg:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 p-6 md:p-8 lg:p-12 shadow-2xl">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <div className="relative">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">Customer Support Agent</h1>
-              <p className="text-lg text-white/90 max-w-2xl">
-                AI-powered customer support with intelligent ticket triage and automated responses
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className={`px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-lg ${
-                demoMode 
-                  ? 'bg-white/20 text-white border border-white/30' 
-                  : 'bg-green-500/20 text-white border border-green-400/30'
-              }`}>
-                {demoMode ? '🎭 Demo Mode' : '🤖 AI Mode'}
-              </span>
-              <button
-                onClick={() => {
-                  showInfo('Demo Mode', 'Support Agent is running in demo mode with local saved answers. No backend connection required.')
-                }}
-                className="px-4 py-2 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 transition-all"
-                title="Demo Mode - Uses local saved answer"
-              >
-                Demo Mode Active
-              </button>
+                <div className="relative">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 md:mb-4">Customer Support Agent</h1>
+                      <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-2xl">
+                        AI-powered customer support with intelligent ticket triage and automated responses
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                      <span className={`px-3 md:px-4 py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold backdrop-blur-lg text-center ${
+                        demoMode 
+                          ? 'bg-white/20 text-white border border-white/30' 
+                          : 'bg-green-500/20 text-white border border-green-400/30'
+                      }`}>
+                        {demoMode ? '🎭 Demo Mode' : '🤖 AI Mode'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          showInfo('Demo Mode', 'Support Agent is running in demo mode with local saved answers. No backend connection required.')
+                        }}
+                        className="px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg md:rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 transition-all"
+                        title="Demo Mode - Uses local saved answer"
+                      >
+                        Demo Mode Active
+                      </button>
             </div>
           </div>
         </div>
@@ -137,9 +137,9 @@ const CustomerSupportAgent = () => {
         </div>
       )}
 
-      <div className="rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg">
+      <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg">
         {/* Chat Messages */}
-        <div className="h-[500px] space-y-4 overflow-y-auto p-6">
+        <div className="h-[400px] md:h-[500px] space-y-3 md:space-y-4 overflow-y-auto p-4 md:p-6">
           {messages.map((message) => (
             <div
               key={message.id}

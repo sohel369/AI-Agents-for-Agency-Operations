@@ -44,9 +44,9 @@ const Dashboard = () => {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-6 lg:space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-cyan-500 p-8 lg:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-cyan-500 p-6 md:p-8 lg:p-12 shadow-2xl">
         {/* Pattern overlay */}
         <div 
           className="absolute inset-0 opacity-20"
@@ -55,17 +55,17 @@ const Dashboard = () => {
           }}
         />
         <div className="relative">
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-4">
             Manage your AI Automation Agents
           </h1>
-          <p className="text-lg text-white/90 max-w-2xl">
+          <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-2xl">
             Streamline your operations with intelligent automation. Monitor, control, and optimize your AI agents from one powerful dashboard.
           </p>
         </div>
       </div>
 
       {/* Agent Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {agents.map((agent) => {
           const Icon = agent.icon
           return (
@@ -101,14 +101,14 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Quick Stats Section */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Quick Stats</h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
-        </div>
-        
-        <div className="grid gap-6 md:grid-cols-3">
+            {/* Quick Stats Section */}
+            <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-2">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Quick Stats</h2>
+                <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Last 30 days</span>
+              </div>
+              
+              <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <StatsCard
             title="Total Tickets"
             value="1,234"
@@ -139,28 +139,28 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Additional Info Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-cyan-50 dark:from-primary-900/20 dark:to-cyan-900/20 p-6 border border-primary-200/50 dark:border-primary-800/50">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            System Status
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            All systems operational. All AI agents are running smoothly.
-          </p>
+            {/* Additional Info Cards */}
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+              <div className="rounded-xl md:rounded-2xl bg-gradient-to-br from-primary-50 to-cyan-50 dark:from-primary-900/20 dark:to-cyan-900/20 p-4 md:p-6 border border-primary-200/50 dark:border-primary-800/50">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  System Status
+                </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 md:mb-4">
+                  All systems operational. All AI agents are running smoothly.
+                </p>
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-sm text-green-600 dark:text-green-400 font-medium">All Systems Online</span>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 border border-purple-200/50 dark:border-purple-800/50">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Recent Activity
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Last 24 hours: 156 tickets processed, 89% AI resolution rate.
-          </p>
+              <div className="rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 md:p-6 border border-purple-200/50 dark:border-purple-800/50">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Recent Activity
+                </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 md:mb-4">
+                  Last 24 hours: 156 tickets processed, 89% AI resolution rate.
+                </p>
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">High Performance</span>

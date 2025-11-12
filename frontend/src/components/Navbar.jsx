@@ -140,7 +140,7 @@ const Navbar = ({ onMenuClick }) => {
             {/* Notification Panel */}
             {showNotificationPanel && (
               <div 
-                className="absolute right-0 mt-2 w-80 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-50 max-h-96 overflow-hidden flex flex-col backdrop-blur-xl"
+                className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-50 max-h-96 overflow-hidden flex flex-col backdrop-blur-xl"
               >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-primary-50 to-cyan-50 dark:from-primary-900/20 dark:to-cyan-900/20">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>

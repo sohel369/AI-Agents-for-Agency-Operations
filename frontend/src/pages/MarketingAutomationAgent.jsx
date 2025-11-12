@@ -160,7 +160,7 @@ Keep up the great work! 🚀`
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 p-8 lg:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 p-6 md:p-8 lg:p-12 shadow-2xl">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -168,21 +168,21 @@ Keep up the great work! 🚀`
           }}
         />
         <div className="relative">
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">Marketing Automation Agent</h1>
-          <p className="text-lg text-white/90 max-w-2xl">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 md:mb-4">Marketing Automation Agent</h1>
+          <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-2xl">
             Schedule posts, generate content, and track engagement metrics across all platforms
           </p>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
         <button
           onClick={() => setShowScheduleModal(true)}
-          className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          className="flex-1 sm:flex-none group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-4 md:px-6 py-3 text-sm md:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative flex items-center space-x-2">
+          <div className="relative flex items-center justify-center space-x-2">
             <Plus className="h-5 w-5" />
             <span>Schedule Post</span>
           </div>
@@ -190,7 +190,7 @@ Keep up the great work! 🚀`
         <button
           onClick={getRecommendations}
           disabled={loading}
-          className="flex items-center space-x-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-3 font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 sm:flex-none flex items-center justify-center space-x-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 md:px-6 py-3 text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -214,10 +214,10 @@ Keep up the great work! 🚀`
       )}
 
       {/* Metrics Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-6 shadow-lg">
-          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Engagement Trends</h2>
-          <ResponsiveContainer width="100%" height={300}>
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+        <div className="rounded-xl md:rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-4 md:p-6 shadow-lg">
+          <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Engagement Trends</h2>
+          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
             <LineChart data={metrics}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
@@ -230,9 +230,9 @@ Keep up the great work! 🚀`
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-6 shadow-lg">
-          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Clicks by Day</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="rounded-xl md:rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-4 md:p-6 shadow-lg">
+          <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Clicks by Day</h2>
+          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
             <BarChart data={metrics}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
@@ -246,8 +246,8 @@ Keep up the great work! 🚀`
       </div>
 
       {/* Scheduled Posts */}
-      <div className="rounded-2xl bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-purple-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 backdrop-blur-lg border border-purple-200/50 dark:border-purple-700/50 p-6 shadow-lg">
-        <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Scheduled Posts</h2>
+      <div className="rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-purple-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 backdrop-blur-lg border border-purple-200/50 dark:border-purple-700/50 p-4 md:p-6 shadow-lg">
+        <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Scheduled Posts</h2>
         {posts.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">No scheduled posts. Create one to get started!</p>
         ) : (
@@ -366,9 +366,9 @@ Keep up the great work! 🚀`
 
       {/* Schedule Modal */}
       {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-2xl bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-800 dark:to-purple-900/20 p-6 shadow-2xl border border-purple-200/50 dark:border-purple-700/50">
-            <h2 className="mb-4 text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">Schedule New Post</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-xl md:rounded-2xl bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-800 dark:to-purple-900/20 p-4 md:p-6 shadow-2xl border border-purple-200/50 dark:border-purple-700/50 max-h-[90vh] overflow-y-auto">
+            <h2 className="mb-4 text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">Schedule New Post</h2>
 
             <div className="space-y-4">
               <div>
@@ -415,17 +415,17 @@ Keep up the great work! 🚀`
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end space-x-4">
+            <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setShowScheduleModal(false)}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 md:px-6 py-2 text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 onClick={schedulePost}
                 disabled={loading}
-                className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-2 font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 px-4 md:px-6 py-2 text-sm md:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? 'Scheduling...' : 'Schedule Post'}
               </button>

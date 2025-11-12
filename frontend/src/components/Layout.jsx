@@ -18,7 +18,7 @@ const Layout = () => {
 
         {/* Main Content Area */}
         <main className="min-h-[calc(100vh-4rem)]">
-          <div className="p-4 lg:p-8">
+          <div className="p-3 md:p-4 lg:p-6 xl:p-8">
             <Outlet />
           </div>
         </main>
