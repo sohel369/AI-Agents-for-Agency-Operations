@@ -2,6 +2,9 @@
  * Local Development Server
  * Simulates API Gateway for local testing
  */
+// This is the local server for the backend. It is used to test the backend locally.
+// It is used to test the backend locally.
+// It is used to test the backend locally.
 
 const express = require('express')
 const cors = require('cors')
