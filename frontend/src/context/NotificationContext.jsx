@@ -16,31 +16,6 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0)
   const [viewedNotifications, setViewedNotifications] = useState(new Set())
 
-  const addNotification = useCallback((notification) => {
-    const id = Date.now()
-    const newNotification = {
-      id,
-      type: notification.type || 'info',
-      title: notification.title || 'Notification',
-      message: notification.message || '',
-      duration: notification.duration || 5000,
-      read: false,
-      ...notification,
-    }
-
-    setNotifications((prev) => [...prev, newNotification])
-    setUnreadCount((prev) => prev + 1)
-
-    // Auto remove after duration
-    if (newNotification.duration > 0) {
-      setTimeout(() => {
-        removeNotification(id)
-      }, newNotification.duration)
-    }
-
-    return id
-  }, [])
-
   const removeNotification = useCallback((id) => {
     setNotifications((prev) => {
       const notification = prev.find((n) => n.id === id)
@@ -55,6 +30,32 @@ export const NotificationProvider = ({ children }) => {
       return next
     })
   }, [])
+
+  const addNotification = useCallback((notification) => {
+    const id = Date.now() + Math.random() // Ensure unique IDs
+    const newNotification = {
+      id,
+      type: notification.type || 'info',
+      title: notification.title || 'Notification',
+      message: notification.message || '',
+      duration: notification.duration !== undefined ? notification.duration : 5000, // Default 5 seconds, 0 = persistent
+      read: false,
+      timestamp: new Date().toISOString(),
+      ...notification,
+    }
+
+    setNotifications((prev) => [...prev, newNotification])
+    setUnreadCount((prev) => prev + 1)
+
+    // Auto remove after duration (only if duration > 0)
+    if (newNotification.duration > 0) {
+      setTimeout(() => {
+        removeNotification(id)
+      }, newNotification.duration)
+    }
+
+    return id
+  }, [removeNotification])
 
   const markAsRead = useCallback((id) => {
     setNotifications((prev) =>
@@ -146,7 +147,7 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
         <div
           key={notification.id}
           onClick={() => !notification.read && onMarkAsRead(notification.id)}
-          className={`rounded-xl border p-4 shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer transition-all ${
+          className={`rounded-xl border p-4 shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer transition-all hover:shadow-xl ${
             notification.read ? 'opacity-75' : ''
           } ${getStyles(notification.type)}`}
         >
@@ -158,7 +159,7 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
               <div className="flex items-center space-x-2">
                 <p className="text-sm font-semibold">{notification.title}</p>
                 {!notification.read && (
-                  <span className="h-2 w-2 rounded-full bg-current opacity-75" />
+                  <span className="h-2 w-2 rounded-full bg-current opacity-75 animate-pulse" />
                 )}
               </div>
               {notification.message && (
@@ -171,6 +172,7 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
                 onRemove(notification.id)
               }}
               className="flex-shrink-0 p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              aria-label="Close notification"
             >
               <X className="h-4 w-4" />
             </button>

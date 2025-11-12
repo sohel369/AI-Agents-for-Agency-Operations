@@ -19,13 +19,14 @@ const Navbar = ({ onMenuClick }) => {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
   const { darkMode, toggleDarkMode } = useTheme()
-  const { showInfo, showSuccess, unreadCount, markAllAsRead } = useNotifications()
+  const { showInfo, showSuccess, unreadCount, markAllAsRead, notifications } = useNotifications()
   const [showNotificationPanel, setShowNotificationPanel] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState('en')
   const profileMenuRef = useRef(null)
   const languageMenuRef = useRef(null)
+  const notificationPanelRef = useRef(null)
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -57,9 +58,11 @@ const Navbar = ({ onMenuClick }) => {
     )
   }
 
-  const handleNotificationClick = () => {
-    setShowNotificationPanel(!showNotificationPanel)
-    if (unreadCount > 0) {
+  const handleNotificationClick = (e) => {
+    e.stopPropagation()
+    const newState = !showNotificationPanel
+    setShowNotificationPanel(newState)
+    if (newState && unreadCount > 0) {
       markAllAsRead()
     }
   }
@@ -88,6 +91,9 @@ const Navbar = ({ onMenuClick }) => {
       }
       if (languageMenuRef.current && !languageMenuRef.current.contains(event.target)) {
         setShowLanguageMenu(false)
+      }
+      if (notificationPanelRef.current && !notificationPanelRef.current.contains(event.target)) {
+        setShowNotificationPanel(false)
       }
     }
 
@@ -118,7 +124,7 @@ const Navbar = ({ onMenuClick }) => {
         {/* Right: Actions */}
         <div className="flex items-center space-x-3">
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationPanelRef}>
             <button 
               onClick={handleNotificationClick}
               className="relative p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -133,20 +139,49 @@ const Navbar = ({ onMenuClick }) => {
             
             {/* Notification Panel */}
             {showNotificationPanel && (
-              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-50 max-h-96 overflow-hidden flex flex-col">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div 
+                className="absolute right-0 mt-2 w-80 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-50 max-h-96 overflow-hidden flex flex-col backdrop-blur-xl"
+              >
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-primary-50 to-cyan-50 dark:from-primary-900/20 dark:to-cyan-900/20">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                   <button
-                    onClick={addDemoNotification}
-                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      addDemoNotification()
+                    }}
+                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium"
                   >
                     Add Demo
                   </button>
                 </div>
                 <div className="overflow-y-auto p-2">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                    No new notifications
-                  </p>
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                      No notifications
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {notifications.slice().reverse().map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`p-3 rounded-lg border ${
+                            notification.read
+                              ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-75'
+                              : 'bg-white dark:bg-gray-800 border-primary-200 dark:border-primary-800'
+                          }`}
+                        >
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {notification.title}
+                          </p>
+                          {notification.message && (
+                            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                              {notification.message}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

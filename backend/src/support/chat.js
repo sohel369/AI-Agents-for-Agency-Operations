@@ -29,92 +29,164 @@ const CONFIDENCE_THRESHOLD = parseFloat(process.env.CONFIDENCE_THRESHOLD || '0.8
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || 'anthropic.claude-v2'
 const CRM_ENDPOINT = process.env.CRM_ENDPOINT_URL || 'https://api.crm.example.com'
 
-// Default Google API key (can be overridden from config)
-const DEFAULT_GOOGLE_API_KEY = 'AIzaSyBKgR2EYZPaXlvPiaM2I_WDwpBYPokr5KE'
+// Default Google AI Studio API key (can be overridden from config or env)
+// NOTE: Get a valid Google AI API key from: https://aistudio.google.com/app/apikey
+// Google AI keys start with "AIza..." not "sk-proj..."
+// The key below is a placeholder - replace with your actual Google AI API key
+const DEFAULT_GOOGLE_API_KEY = ''
 
 /**
- * Get API key from config or use default
+ * Get Google AI Studio API key from config or environment
  */
 function getSupportAgentApiKey() {
-  // Try to get from environment first
-  if (process.env.SUPPORT_AGENT_API_KEY) {
-    return process.env.SUPPORT_AGENT_API_KEY
+  // Priority 1: Environment variable
+  if (process.env.GOOGLE_AI_API_KEY && process.env.GOOGLE_AI_API_KEY.trim() !== '') {
+    const key = process.env.GOOGLE_AI_API_KEY.trim()
+    console.log('🔑 Using GOOGLE_AI_API_KEY from environment')
+    return key
   }
   
-  // Try to get from admin config
+  // Priority 2: Support Agent API key from environment
+  if (process.env.SUPPORT_AGENT_API_KEY && process.env.SUPPORT_AGENT_API_KEY.trim() !== '') {
+    const key = process.env.SUPPORT_AGENT_API_KEY.trim()
+    console.log('🔑 Using SUPPORT_AGENT_API_KEY from environment')
+    return key
+  }
+  
+  // Priority 3: Admin config
   try {
     const { getSupportAgentApiKey: getApiKey } = require('../admin/config')
     const apiKey = getApiKey()
     if (apiKey && apiKey.trim() !== '') {
-      return apiKey
+      console.log('🔑 Using API key from admin config')
+      return apiKey.trim()
     }
   } catch (error) {
-    console.log('Could not fetch config, using default API key:', error.message)
+    console.log('⚠️ Could not fetch config, using default API key:', error.message)
   }
   
+  // Priority 4: Default key
+  console.log('🔑 Using default API key')
   return DEFAULT_GOOGLE_API_KEY
 }
 
 /**
- * Invoke Google Gemini API
+ * Invoke Google AI Studio (Gemini API)
+ * Uses the Generative AI API from Google AI Studio
  */
 async function invokeGoogleGemini(prompt, apiKey) {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`
+    // Use the latest Gemini model (gemini-1.5-flash or gemini-pro)
+    const model = process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
+        maxOutputTokens: parseInt(process.env.MAX_OUTPUT_TOKENS || '1024'),
+        topP: 0.95,
+        topK: 40,
+      },
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+        },
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+        }
+      ]
+    }
+
+    console.log(`🤖 Calling Google AI Studio (${model})...`)
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
-          maxOutputTokens: 1024,
-        }
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('Google API error:', response.status, errorData)
-      throw new Error(`Google API error: ${response.status}`)
+      let errorMessage = `Google AI API error: ${response.status}`
+      
+      try {
+        const errorJson = JSON.parse(errorData)
+        if (errorJson.error && errorJson.error.message) {
+          errorMessage = `Google AI API error: ${errorJson.error.message}`
+        }
+      } catch (e) {
+        // If parsing fails, use the raw error data
+        errorMessage = `Google AI API error: ${response.status} - ${errorData.substring(0, 200)}`
+      }
+      
+      console.error('Google AI API error:', response.status, errorData)
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
     
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      return data.candidates[0].content.parts[0].text
+    // Handle response format
+    if (data.candidates && data.candidates[0]) {
+      const candidate = data.candidates[0]
+      
+      // Check for safety ratings
+      if (candidate.safetyRatings && candidate.safetyRatings.some(r => r.blocked)) {
+        throw new Error('Response blocked by safety filters')
+      }
+      
+      if (candidate.content && candidate.content.parts && candidate.content.parts[0]) {
+        return candidate.content.parts[0].text
+      }
     }
     
-    throw new Error('Invalid response format from Google API')
+    throw new Error('Invalid response format from Google AI API')
   } catch (error) {
-    console.error('Google Gemini invocation error:', error.message)
+    console.error('Google AI Studio invocation error:', error.message)
     throw error
   }
 }
 
 /**
- * Invoke AI model to generate response (Google Gemini, Bedrock, or mock)
+ * Invoke AI model to generate response (Google AI Studio, Bedrock, or mock)
+ * Priority: Google AI Studio > Mock Mode > AWS Bedrock
  */
 async function invokeAI(prompt) {
-  // Always try Google Gemini first if API key is available
-  try {
-    const apiKey = getSupportAgentApiKey()
-    if (apiKey && apiKey.trim() !== '') {
-      console.log('🤖 Using Google Gemini API')
+  // Priority 1: Try Google AI Studio (Gemini API) if API key is available
+  const apiKey = getSupportAgentApiKey()
+  
+  // Validate API key format (Google AI keys start with "AIza")
+  if (apiKey && apiKey.trim() !== '' && apiKey.trim().startsWith('AIza')) {
+    try {
+      console.log('🤖 Using Google AI Studio (Gemini API)')
       return await invokeGoogleGemini(prompt, apiKey)
+    } catch (error) {
+      console.error('⚠️ Google AI Studio failed:', error.message)
+      // Continue to fallback options
     }
-  } catch (error) {
-    console.log('⚠️ Google Gemini failed, falling back to mock mode:', error.message)
+  } else if (apiKey && apiKey.trim() !== '') {
+    console.log('⚠️ Invalid API key format. Google AI keys should start with "AIza...". Using fallback.')
+  } else {
+    console.log('⚠️ No Google AI API key found, using fallback')
   }
 
-  // Fall back to mock mode
+  // Priority 2: Fall back to mock mode if enabled
   if (USE_MOCK_MODE) {
     console.log('🔧 Using mock Bedrock service')
     return await mockInvokeBedrock(prompt, {
@@ -123,38 +195,43 @@ async function invokeAI(prompt) {
     })
   }
 
-  // Try AWS Bedrock if credentials are available
-  try {
-    const input = {
-      modelId: MODEL_ID,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 1024,
-        temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-    }
+  // Priority 3: Try AWS Bedrock if credentials are available
+  if (bedrockClient) {
+    try {
+      console.log('🔷 Attempting AWS Bedrock...')
+      const input = {
+        modelId: MODEL_ID,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 1024,
+          temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
+      }
 
-    const command = new InvokeModelCommand(input)
-    const response = await bedrockClient.send(command)
-    const responseBody = JSON.parse(new TextDecoder().decode(response.body))
-    
-    return responseBody.content[0].text
-  } catch (error) {
-    console.error('Bedrock invocation error, falling back to mock:', error.message)
-    // Final fallback to mock
-    return await mockInvokeBedrock(prompt, {
-      temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
-      maxTokens: 1024,
-    })
+      const command = new InvokeModelCommand(input)
+      const response = await bedrockClient.send(command)
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body))
+      
+      return responseBody.content[0].text
+    } catch (error) {
+      console.error('⚠️ Bedrock invocation error:', error.message)
+    }
   }
+
+  // Final fallback: Mock response
+  console.log('🔧 Using mock response as final fallback')
+  return await mockInvokeBedrock(prompt, {
+    temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
+    maxTokens: 1024,
+  })
 }
 
 /**
@@ -211,87 +288,13 @@ function calculateConfidence(response, message) {
 }
 
 /**
- * Demo mode responses - predefined answers for common questions
+ * Demo mode response - always returns the same saved answer
  */
 function getDemoResponse(message, conversationHistory) {
-  const lowerMessage = message.toLowerCase().trim()
-  
-  // Greeting responses
-  if (lowerMessage.match(/^(hi|hello|hey|greetings|good morning|good afternoon|good evening)/)) {
-    return {
-      response: "Hello! 👋 Welcome to our AI Automation Suite support. I'm here to help you with any questions about our services, features, or technical issues. How can I assist you today?",
-      confidence: 0.95,
-      demo: true
-    }
-  }
-
-  // Help requests
-  if (lowerMessage.includes('help') || lowerMessage.includes('support')) {
-    return {
-      response: "I'd be happy to help! Our AI Automation Suite offers three main agents:\n\n1. **Customer Support Agent** - Handles customer inquiries and ticket management\n2. **Data Analytics Agent** - Analyzes CRM data and generates insights\n3. **Marketing Automation Agent** - Schedules posts and tracks engagement\n\nWhat specific feature would you like to know more about?",
-      confidence: 0.90,
-      demo: true
-    }
-  }
-
-  // Pricing questions
-  if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('pricing')) {
-    return {
-      response: "Thank you for your interest! Our pricing plans are flexible and designed to scale with your business needs. We offer:\n\n• **Starter Plan** - Perfect for small teams\n• **Professional Plan** - For growing businesses\n• **Enterprise Plan** - Custom solutions for large organizations\n\nWould you like me to connect you with our sales team for detailed pricing information?",
-      confidence: 0.85,
-      demo: true
-    }
-  }
-
-  // Feature questions
-  if (lowerMessage.includes('feature') || lowerMessage.includes('what can') || lowerMessage.includes('capabilities')) {
-    return {
-      response: "Our AI Automation Suite includes powerful features:\n\n✨ **AI-Powered Support** - Automated ticket triage and responses\n📊 **Data Analytics** - Real-time insights from your CRM data\n📱 **Social Media Management** - Schedule and track posts across platforms\n⚙️ **Admin Dashboard** - Configure settings and manage your agents\n\nIs there a specific feature you'd like to explore?",
-      confidence: 0.90,
-      demo: true
-    }
-  }
-
-  // Technical issues
-  if (lowerMessage.includes('error') || lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('not working')) {
-    return {
-      response: "I'm sorry to hear you're experiencing an issue. Let me help you troubleshoot:\n\n1. **Check your connection** - Ensure you have a stable internet connection\n2. **Clear cache** - Try clearing your browser cache and cookies\n3. **Refresh the page** - Sometimes a simple refresh resolves the issue\n4. **Check browser compatibility** - We support Chrome, Firefox, Safari, and Edge\n\nIf the problem persists, I can escalate this to our technical team. Can you provide more details about the error?",
-      confidence: 0.80,
-      demo: true
-    }
-  }
-
-  // Account questions
-  if (lowerMessage.includes('account') || lowerMessage.includes('sign up') || lowerMessage.includes('register')) {
-    return {
-      response: "Creating an account is easy! Simply:\n\n1. Click the 'Sign Up' button on the login page\n2. Enter your name, email, and create a password\n3. Verify your email address\n4. Start using our AI agents!\n\nYour account gives you access to all three AI agents and the admin dashboard. Need help with the signup process?",
-      confidence: 0.95,
-      demo: true
-    }
-  }
-
-  // Thank you responses
-  if (lowerMessage.match(/^(thanks|thank you|appreciate|grateful)/)) {
-    return {
-      response: "You're very welcome! 😊 I'm glad I could help. If you have any other questions or need further assistance, feel free to ask. Have a great day!",
-      confidence: 0.95,
-      demo: true
-    }
-  }
-
-  // Goodbye responses
-  if (lowerMessage.match(/^(bye|goodbye|see you|farewell|exit|quit)/)) {
-    return {
-      response: "Thank you for contacting us! If you need any further assistance, don't hesitate to reach out. Have a wonderful day! 👋",
-      confidence: 0.95,
-      demo: true
-    }
-  }
-
-  // Default demo response
+  // Always return the same saved demo answer regardless of user input
   return {
-    response: `Thank you for your message: "${message}". I'm here to help! Our AI Automation Suite can assist with:\n\n• Customer support automation\n• Data analytics and insights\n• Marketing campaign management\n• System configuration\n\nCould you provide more details about what you'd like help with? This will help me give you the most accurate assistance.`,
-    confidence: 0.75,
+    response: "Hello! 👋 Welcome to our AI Automation Suite support. I'm here to help you with any questions about our services, features, or technical issues. How can I assist you today?",
+    confidence: 0.95,
     demo: true
   }
 }
@@ -300,46 +303,94 @@ function getDemoResponse(message, conversationHistory) {
  * Main handler
  */
 exports.handler = async (event) => {
+  // Store event for error handling
+  const eventCopy = event
+  
   try {
-    const body = event.body ? (typeof event.body === 'string' ? JSON.parse(event.body) : event.body) : {}
-    const { message, conversationHistory, demoMode } = body
-
-    if (!message) {
+    // Parse body - handle both string and object formats
+    let body = {}
+    try {
+      if (typeof event.body === 'string') {
+        body = JSON.parse(event.body)
+      } else if (event.body) {
+        body = event.body
+      }
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError)
       return {
         statusCode: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({ error: 'Message is required' }),
+        body: JSON.stringify({ error: 'Invalid request body format' }),
       }
     }
 
-    // Check if demo mode is enabled (default to true in mock mode or when explicitly requested)
-    // If demoMode is explicitly false, use AI. Otherwise, default to demo mode for better UX
-    const useDemoMode = demoMode === true || (demoMode !== false && USE_MOCK_MODE)
+    const { message, conversationHistory, demoMode } = body
 
-    if (useDemoMode) {
-      console.log('🎭 Using DEMO MODE - Providing predefined responses')
-      const demoResponse = getDemoResponse(message, conversationHistory)
-      
-      // Create ticket
-      const ticket = await createCRMTicket(message, demoResponse.confidence, false)
-      
+    if (!message || typeof message !== 'string' || message.trim() === '') {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({
-          response: demoResponse.response,
-          confidence: demoResponse.confidence,
-          ticketCreated: true,
-          ticketId: ticket.id,
-          escalated: false,
-          demoMode: true,
-        }),
+        body: JSON.stringify({ error: 'Message is required and must be a non-empty string' }),
+      }
+    }
+
+    // Check if demo mode is enabled
+    // Priority: explicit demoMode flag > DEMO_MODE env var > mock mode fallback
+    const envDemoMode = process.env.DEMO_MODE === 'true'
+    const useDemoMode = demoMode === true || (demoMode !== false && (envDemoMode || USE_MOCK_MODE))
+
+    if (useDemoMode) {
+      console.log('🎭 Using DEMO MODE - Providing predefined responses')
+      
+      try {
+        const demoResponse = getDemoResponse(message, conversationHistory)
+        
+        // Create ticket (safe, won't fail in demo mode)
+        let ticket = { id: `TICKET-${Date.now()}` }
+        try {
+          ticket = await createCRMTicket(message, demoResponse.confidence, false)
+        } catch (ticketError) {
+          console.log('Ticket creation skipped in demo mode:', ticketError.message)
+        }
+        
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            response: demoResponse.response,
+            confidence: demoResponse.confidence,
+            ticketCreated: true,
+            ticketId: ticket.id || `TICKET-${Date.now()}`,
+            escalated: false,
+            demoMode: true,
+          }),
+        }
+      } catch (demoError) {
+        console.error('Error in demo mode:', demoError)
+        // Fallback response if demo mode fails
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            response: "Hello! 👋 Welcome to our AI Automation Suite support. I'm here to help you with any questions about our services, features, or technical issues. How can I assist you today?",
+            confidence: 0.95,
+            ticketCreated: false,
+            escalated: false,
+            demoMode: true,
+          }),
+        }
       }
     }
 
@@ -357,40 +408,22 @@ ${context ? `Previous conversation:\n${context}\n\n` : ''}Customer message: ${me
 
 Provide a helpful response:`
 
-    // Generate AI response
-    const aiResponse = await invokeAI(prompt)
-
-    // Calculate confidence
-    const confidence = calculateConfidence(aiResponse, message)
-    const escalated = confidence < CONFIDENCE_THRESHOLD
-
-    // Create ticket in CRM
-    const ticket = await createCRMTicket(message, confidence, escalated)
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        response: aiResponse,
-        confidence,
-        ticketCreated: true,
-        ticketId: ticket.id,
-        escalated,
-      }),
-    }
-  } catch (error) {
-    console.error('Error in support chat handler:', error)
-    
-    // Try to provide a fallback response instead of just error
     try {
-      const fallbackResponse = await mockInvokeBedrock(
-        `You are a helpful customer support agent. A customer said: ${message}. Provide a helpful response.`,
-        { temperature: 0.7, maxTokens: 512 }
-      )
-      
+      // Generate AI response
+      const aiResponse = await invokeAI(prompt)
+
+      // Calculate confidence
+      const confidence = calculateConfidence(aiResponse, message)
+      const escalated = confidence < CONFIDENCE_THRESHOLD
+
+      // Create ticket in CRM
+      let ticket = { id: `TICKET-${Date.now()}` }
+      try {
+        ticket = await createCRMTicket(message, confidence, escalated)
+      } catch (ticketError) {
+        console.log('Ticket creation error (continuing):', ticketError.message)
+      }
+
       return {
         statusCode: 200,
         headers: {
@@ -398,23 +431,96 @@ Provide a helpful response:`
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          response: fallbackResponse,
-          confidence: 0.7,
+          response: aiResponse,
+          confidence,
+          ticketCreated: true,
+          ticketId: ticket.id || `TICKET-${Date.now()}`,
+          escalated,
+        }),
+      }
+    } catch (aiError) {
+      console.error('AI invocation error, falling back to demo:', aiError.message)
+      // Fallback to demo response if AI fails
+      const demoResponse = getDemoResponse(message, conversationHistory)
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          response: demoResponse.response,
+          confidence: demoResponse.confidence,
           ticketCreated: false,
           escalated: false,
+          demoMode: true,
+          warning: 'Using demo response due to AI error',
+        }),
+      }
+    }
+  } catch (error) {
+    console.error('Error in support chat handler:', error)
+    console.error('Error stack:', error.stack)
+    
+    // Get message from body if available, otherwise use default
+    let userMessage = ''
+    try {
+      const body = eventCopy.body ? (typeof eventCopy.body === 'string' ? JSON.parse(eventCopy.body) : eventCopy.body) : {}
+      userMessage = body.message || ''
+    } catch (e) {
+      // Ignore parse errors
+    }
+    
+    // Provide helpful error messages
+    let errorMessage = 'Sorry, I encountered an error. Please try again.'
+    let errorDetails = undefined
+    
+    if (process.env.NODE_ENV === 'development' || USE_MOCK_MODE) {
+      errorDetails = error.message
+    }
+    
+    // Check for specific Google AI errors
+    if (error.message && (error.message.includes('Google AI') || error.message.includes('Google'))) {
+      errorMessage = 'Unable to connect to Google AI service. Please check your API key configuration.'
+      if (process.env.NODE_ENV === 'development' || USE_MOCK_MODE) {
+        errorDetails = error.message
+      }
+    }
+    
+    // Fallback to demo response if AI fails
+    try {
+      console.log('🔄 Attempting fallback to demo response due to error')
+      const demoResponse = getDemoResponse(userMessage || 'Hello', [])
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          response: demoResponse.response,
+          confidence: 0.5,
+          ticketCreated: false,
+          escalated: true,
+          demoMode: true,
           warning: 'Using fallback response due to API error',
+          error: errorMessage,
+          errorDetails: errorDetails,
         }),
       }
     } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError)
+      // If even fallback fails, return error with safe message
       return {
         statusCode: 500,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({ 
-          error: 'Internal server error',
-          details: error.message 
+        body: JSON.stringify({
+          error: errorMessage,
+          details: errorDetails,
+          message: 'An unexpected error occurred. Please try again.',
         }),
       }
     }

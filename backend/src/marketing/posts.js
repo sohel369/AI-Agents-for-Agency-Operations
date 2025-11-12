@@ -4,7 +4,7 @@
  */
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb')
-const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb')
+const { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb')
 const { shouldUseMockMode } = require('../../mock/bedrockMock')
 
 // Check if we should use mock mode
@@ -124,6 +124,156 @@ exports.handler = async (event) => {
           success: true,
           post,
         }),
+      }
+    }
+
+    if (event.httpMethod === 'PUT') {
+      const body = event.body ? (typeof event.body === 'string' ? JSON.parse(event.body) : event.body) : {}
+      const { id, platform, content, scheduledDate, status } = body
+
+      if (!id) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({ error: 'Post ID is required' }),
+        }
+      }
+
+      if (USE_MOCK_MODE) {
+        // Update post in in-memory store
+        const postIndex = mockPostsStore.findIndex((p) => p.id === id)
+        if (postIndex === -1) {
+          return {
+            statusCode: 404,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify({ error: 'Post not found' }),
+          }
+        }
+
+        const existingPost = mockPostsStore[postIndex]
+        const updatedPost = {
+          ...existingPost,
+          ...(platform && { platform }),
+          ...(content && { content }),
+          ...(scheduledDate && { scheduledDate }),
+          ...(status && { status }),
+          updatedAt: new Date().toISOString(),
+        }
+
+        mockPostsStore[postIndex] = updatedPost
+        console.log('📝 [MOCK] Post updated:', updatedPost)
+
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            success: true,
+            post: updatedPost,
+          }),
+        }
+      }
+
+      // Update post in DynamoDB
+      try {
+        // First, get the existing post
+        const getResult = await dynamoClient.send(
+          new GetCommand({
+            TableName: process.env.POSTS_TABLE || 'MarketingPosts',
+            Key: { id },
+          })
+        )
+
+        if (!getResult.Item) {
+          return {
+            statusCode: 404,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify({ error: 'Post not found' }),
+          }
+        }
+
+        const existingPost = getResult.Item
+        const updateExpression = []
+        const expressionAttributeNames = {}
+        const expressionAttributeValues = {}
+
+        if (platform) {
+          updateExpression.push('#platform = :platform')
+          expressionAttributeNames['#platform'] = 'platform'
+          expressionAttributeValues[':platform'] = platform
+        }
+        if (content) {
+          updateExpression.push('#content = :content')
+          expressionAttributeNames['#content'] = 'content'
+          expressionAttributeValues[':content'] = content
+        }
+        if (scheduledDate) {
+          updateExpression.push('#scheduledDate = :scheduledDate')
+          expressionAttributeNames['#scheduledDate'] = 'scheduledDate'
+          expressionAttributeValues[':scheduledDate'] = scheduledDate
+        }
+        if (status) {
+          updateExpression.push('#status = :status')
+          expressionAttributeNames['#status'] = 'status'
+          expressionAttributeValues[':status'] = status
+        }
+
+        updateExpression.push('#updatedAt = :updatedAt')
+        expressionAttributeNames['#updatedAt'] = 'updatedAt'
+        expressionAttributeValues[':updatedAt'] = new Date().toISOString()
+
+        await dynamoClient.send(
+          new UpdateCommand({
+            TableName: process.env.POSTS_TABLE || 'MarketingPosts',
+            Key: { id },
+            UpdateExpression: `SET ${updateExpression.join(', ')}`,
+            ExpressionAttributeNames: expressionAttributeNames,
+            ExpressionAttributeValues: expressionAttributeValues,
+            ReturnValues: 'ALL_NEW',
+          })
+        )
+
+        const updatedPost = {
+          ...existingPost,
+          ...(platform && { platform }),
+          ...(content && { content }),
+          ...(scheduledDate && { scheduledDate }),
+          ...(status && { status }),
+          updatedAt: new Date().toISOString(),
+        }
+
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            success: true,
+            post: updatedPost,
+          }),
+        }
+      } catch (error) {
+        console.error('DynamoDB error:', error.message)
+        return {
+          statusCode: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({ error: 'Failed to update post' }),
+        }
       }
     }
 

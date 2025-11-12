@@ -20,8 +20,5 @@
     "ai-agents"
   ],
   "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "vite": "^7.2.2"
-  }
+  "license": "MIT"
 }

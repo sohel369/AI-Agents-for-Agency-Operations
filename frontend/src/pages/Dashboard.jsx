@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { MessageSquare, BarChart3, Megaphone, ArrowRight, TrendingUp, Users, AlertCircle } from 'lucide-react'
 import StatsCard from '../components/StatsCard'
 import { useNotifications } from '../context/NotificationContext'
+import SupportAgentDemo from '../components/SupportAgentDemo'
 
 const Dashboard = () => {
   const { showSuccess, showInfo } = useNotifications()
@@ -164,6 +165,17 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">High Performance</span>
           </div>
+        </div>
+      </div>
+
+      {/* Support Agent Demo */}
+      <div className="rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-600 to-cyan-500">
+          <h2 className="text-xl font-bold text-white">Support Agent</h2>
+          <p className="text-sm text-white/80">Try the demo support agent - all messages receive the same response</p>
+        </div>
+        <div className="h-[500px]">
+          <SupportAgentDemo demoMode={true} />
         </div>
       </div>
     </div>

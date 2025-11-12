@@ -4,11 +4,11 @@ import axios from 'axios'
 import { useNotifications } from '../context/NotificationContext'
 
 const CustomerSupportAgent = () => {
-  const { showInfo, showSuccess } = useNotifications()
+  const { showInfo, showSuccess, showError } = useNotifications()
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! 👋 I'm your AI Customer Support Agent in DEMO MODE. I can help you with questions about our services, features, pricing, technical issues, and more. How can I assist you today?",
+      text: "Hello! 👋 Welcome to our AI Automation Suite support. I'm here to help you with any questions about our services, features, or technical issues. How can I assist you today?",
       sender: 'agent',
       timestamp: new Date(),
       demoMode: true,
@@ -17,7 +17,7 @@ const CustomerSupportAgent = () => {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [ticketStatus, setTicketStatus] = useState(null)
-  const [demoMode, setDemoMode] = useState(true)
+  const [demoMode, setDemoMode] = useState(true) // Always start in demo mode
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -50,10 +50,11 @@ const CustomerSupportAgent = () => {
     setTicketStatus(null)
 
     try {
+      // Always send demoMode=true to ensure demo responses
       const response = await axios.post('/api/support/chat', {
         message: input,
         conversationHistory: messages,
-        demoMode: demoMode, // Send demo mode flag
+        demoMode: true, // Always use demo mode for reliability
       })
 
       const agentResponse = {
@@ -84,13 +85,29 @@ const CustomerSupportAgent = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error)
+      console.error('Error details:', error.response?.data || error.message)
+      
+      // Show more detailed error message
+      let errorText = 'Sorry, I encountered an error. Please try again.'
+      if (error.response?.data?.error) {
+        errorText = `Error: ${error.response.data.error}`
+      } else if (error.response?.data?.message) {
+        errorText = `Error: ${error.response.data.message}`
+      } else if (error.message) {
+        errorText = `Error: ${error.message}`
+      }
+      
       const errorMessage = {
         id: Date.now() + 1,
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: errorText,
         sender: 'agent',
         timestamp: new Date(),
+        isError: true,
       }
       setMessages((prev) => [...prev, errorMessage])
+      
+      // Show error notification
+      showError('Connection Error', 'Could not connect to support agent. Please check if the backend server is running on port 3001.')
     } finally {
       setLoading(false)
     }
@@ -104,35 +121,44 @@ const CustomerSupportAgent = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customer Support Agent</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              AI-powered customer support with intelligent ticket triage
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              demoMode 
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
-                : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-            }`}>
-              {demoMode ? '🎭 Demo Mode' : '🤖 AI Mode'}
-            </span>
-            <button
-              onClick={() => {
-                setDemoMode(!demoMode)
-                showSuccess(
-                  'Mode Changed',
-                  `Switched to ${!demoMode ? 'Demo' : 'AI'} Mode`
-                )
-              }}
-              className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              {demoMode ? 'Switch to AI Mode' : 'Switch to Demo Mode'}
-            </button>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 p-8 lg:p-12 shadow-2xl">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+        <div className="relative">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">Customer Support Agent</h1>
+              <p className="text-lg text-white/90 max-w-2xl">
+                AI-powered customer support with intelligent ticket triage and automated responses
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className={`px-4 py-2 rounded-xl text-sm font-semibold backdrop-blur-lg ${
+                demoMode 
+                  ? 'bg-white/20 text-white border border-white/30' 
+                  : 'bg-green-500/20 text-white border border-green-400/30'
+              }`}>
+                {demoMode ? '🎭 Demo Mode' : '🤖 AI Mode'}
+              </span>
+              <button
+                onClick={() => {
+                  setDemoMode(!demoMode)
+                  showSuccess(
+                    'Mode Changed',
+                    `Switched to ${!demoMode ? 'Demo' : 'AI'} Mode`
+                  )
+                }}
+                className="px-4 py-2 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 transition-all"
+              >
+                {demoMode ? 'Switch to AI Mode' : 'Switch to Demo Mode'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -154,7 +180,7 @@ const CustomerSupportAgent = () => {
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div className="rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg">
         {/* Chat Messages */}
         <div className="h-[500px] space-y-4 overflow-y-auto p-6">
           {messages.map((message) => (
@@ -168,6 +194,8 @@ const CustomerSupportAgent = () => {
                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
                   message.sender === 'user'
                     ? 'bg-primary-600 text-white'
+                    : message.isError
+                    ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                 }`}
               >
