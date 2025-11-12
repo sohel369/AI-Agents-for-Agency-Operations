@@ -23,10 +23,9 @@ const CustomerSupportAgent = () => {
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
-    if (demoMode) {
-      showInfo('Demo Mode Active', 'You are using demo responses. Switch to AI Mode for real AI-powered responses.')
-    }
-  }, [demoMode, showInfo])
+    // Demo mode is always active - uses local saved answer
+    // No notification needed as it's always in demo mode
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -109,15 +108,12 @@ const CustomerSupportAgent = () => {
               </span>
               <button
                 onClick={() => {
-                  setDemoMode(!demoMode)
-                  showSuccess(
-                    'Mode Changed',
-                    `Switched to ${!demoMode ? 'Demo' : 'AI'} Mode`
-                  )
+                  showInfo('Demo Mode', 'Support Agent is running in demo mode with local saved answers. No backend connection required.')
                 }}
                 className="px-4 py-2 text-sm font-semibold rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 transition-all"
+                title="Demo Mode - Uses local saved answer"
               >
-                {demoMode ? 'Switch to AI Mode' : 'Switch to Demo Mode'}
+                Demo Mode Active
               </button>
             </div>
           </div>
