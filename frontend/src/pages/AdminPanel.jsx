@@ -15,7 +15,7 @@ const AdminPanel = () => {
       bedrock: '',
       slack: '',
       crm: '',
-      supportAgent: 'AIzaSyBKgR2EYZPaXlvPiaM2I_WDwpBYPokr5KE',
+      supportAgent: '',
     },
     reportFormat: 'text',
   })
