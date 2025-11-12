@@ -1,0 +1,100 @@
+{
+  "tables": [
+    {
+      "tableName": "SupportTickets",
+      "description": "Stores customer support tickets created by the Support Agent",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "S",
+          "description": "Unique ticket identifier (e.g., TICKET-1234567890)"
+        }
+      ],
+      "keySchema": [
+        {
+          "attributeName": "id",
+          "keyType": "HASH"
+        }
+      ],
+      "sampleItem": {
+        "id": "TICKET-1234567890",
+        "message": "Customer inquiry text",
+        "confidence": 0.85,
+        "escalated": false,
+        "status": "ai-resolved",
+        "createdAt": "2024-01-15T10:30:00Z",
+        "resolvedAt": "2024-01-15T10:31:00Z"
+      }
+    },
+    {
+      "tableName": "MarketingPosts",
+      "description": "Stores scheduled social media posts for the Marketing Agent",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "S",
+          "description": "Unique post identifier (e.g., POST-1234567890)"
+        }
+      ],
+      "keySchema": [
+        {
+          "attributeName": "id",
+          "keyType": "HASH"
+        }
+      ],
+      "sampleItem": {
+        "id": "POST-1234567890",
+        "platform": "facebook",
+        "content": "Post content text",
+        "scheduledDate": "2024-01-20T14:00:00Z",
+        "status": "scheduled",
+        "createdAt": "2024-01-15T10:00:00Z",
+        "metrics": {
+          "views": 1250,
+          "likes": 89,
+          "comments": 12,
+          "shares": 5
+        }
+      }
+    },
+    {
+      "tableName": "SystemConfig",
+      "description": "Stores system configuration from the Admin Panel",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "S",
+          "description": "Configuration key (always 'main')"
+        }
+      ],
+      "keySchema": [
+        {
+          "attributeName": "id",
+          "keyType": "HASH"
+        }
+      ],
+      "sampleItem": {
+        "id": "main",
+        "config": {
+          "modelTemperature": 0.7,
+          "confidenceThreshold": 0.8,
+          "crmEndpointUrl": "https://api.crm.example.com",
+          "apiKeys": {
+            "bedrock": "encrypted-key",
+            "slack": "encrypted-key",
+            "crm": "encrypted-key"
+          },
+          "reportFormat": "text"
+        },
+        "updatedAt": "2024-01-15T10:00:00Z"
+      }
+    }
+  ],
+  "notes": [
+    "All tables use PAY_PER_REQUEST billing mode for cost efficiency",
+    "In production, consider adding GSI (Global Secondary Index) for querying by date, status, etc.",
+    "API keys should be encrypted using AWS Secrets Manager or Parameter Store",
+    "Consider adding TTL (Time To Live) attributes for automatic cleanup of old records"
+  ]
+}
+

@@ -1,0 +1,261 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI Automation Suite - AWS SAM Template
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        AWS_REGION: !Ref AWS::Region
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        CONFIDENCE_THRESHOLD: !Ref ConfidenceThreshold
+        MODEL_TEMPERATURE: !Ref ModelTemperature
+        CRM_ENDPOINT_URL: !Ref CRMEndpointUrl
+        TICKETS_TABLE: !Ref SupportTicketsTable
+        POSTS_TABLE: !Ref MarketingPostsTable
+        CONFIG_TABLE: !Ref SystemConfigTable
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-v2
+    Description: AWS Bedrock model ID to use
+  
+  ConfidenceThreshold:
+    Type: Number
+    Default: 0.8
+    Description: Confidence threshold for auto-resolution
+  
+  ModelTemperature:
+    Type: Number
+    Default: 0.7
+    Description: Model temperature setting
+  
+  CRMEndpointUrl:
+    Type: String
+    Default: https://api.crm.example.com
+    Description: CRM API endpoint URL
+
+Resources:
+  # DynamoDB Tables
+  SupportTicketsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SupportTickets
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  MarketingPostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MarketingPosts
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  SystemConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SystemConfig
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  # IAM Role for Lambda Functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: BedrockAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: '*'
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !GetAtt SupportTicketsTable.Arn
+                  - !GetAtt MarketingPostsTable.Arn
+                  - !GetAtt SystemConfigTable.Arn
+
+  # Customer Support Agent Functions
+  SupportChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SupportChatFunction
+      CodeUri: src/support/
+      Handler: chat.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        SupportChatApi:
+          Type: Api
+          Properties:
+            Path: /support/chat
+            Method: post
+
+  # Data Analytics Agent Functions
+  AnalyticsDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AnalyticsDataFunction
+      CodeUri: src/analytics/
+      Handler: data.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        AnalyticsDataApi:
+          Type: Api
+          Properties:
+            Path: /analytics/data
+            Method: get
+
+  AnalyticsAnalyzeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AnalyticsAnalyzeFunction
+      CodeUri: src/analytics/
+      Handler: analyze.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        AnalyticsAnalyzeApi:
+          Type: Api
+          Properties:
+            Path: /analytics/analyze
+            Method: post
+
+  AnalyticsExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AnalyticsExportFunction
+      CodeUri: src/analytics/
+      Handler: export.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        AnalyticsExportApi:
+          Type: Api
+          Properties:
+            Path: /analytics/export
+            Method: post
+
+  # Marketing Automation Agent Functions
+  MarketingPostsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MarketingPostsFunction
+      CodeUri: src/marketing/
+      Handler: posts.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        MarketingPostsApi:
+          Type: Api
+          Properties:
+            Path: /marketing/posts
+            Method: get
+        MarketingPostsPostApi:
+          Type: Api
+          Properties:
+            Path: /marketing/posts
+            Method: post
+
+  MarketingGenerateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MarketingGenerateFunction
+      CodeUri: src/marketing/
+      Handler: generate.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        MarketingGenerateApi:
+          Type: Api
+          Properties:
+            Path: /marketing/generate
+            Method: post
+
+  MarketingRecommendationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MarketingRecommendationsFunction
+      CodeUri: src/marketing/
+      Handler: recommendations.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        MarketingRecommendationsApi:
+          Type: Api
+          Properties:
+            Path: /marketing/recommendations
+            Method: post
+
+  # Admin Panel Functions
+  AdminConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AdminConfigFunction
+      CodeUri: src/admin/
+      Handler: config.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        AdminConfigGetApi:
+          Type: Api
+          Properties:
+            Path: /admin/config
+            Method: get
+        AdminConfigPostApi:
+          Type: Api
+          Properties:
+            Path: /admin/config
+            Method: post
+
+Outputs:
+  ApiGatewayUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+  
+  SupportTicketsTableName:
+    Description: Support Tickets DynamoDB Table
+    Value: !Ref SupportTicketsTable
+  
+  MarketingPostsTableName:
+    Description: Marketing Posts DynamoDB Table
+    Value: !Ref MarketingPostsTable
+  
+  SystemConfigTableName:
+    Description: System Config DynamoDB Table
+    Value: !Ref SystemConfigTable
+

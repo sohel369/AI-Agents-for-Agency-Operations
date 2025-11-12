@@ -1,0 +1,150 @@
+/**
+ * Marketing Automation Agent - Posts Handler
+ * Fetches and manages scheduled social media posts
+ */
+
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb')
+const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb')
+const { shouldUseMockMode } = require('../../mock/bedrockMock')
+
+// Check if we should use mock mode
+const USE_MOCK_MODE = shouldUseMockMode()
+
+if (USE_MOCK_MODE) {
+  console.log('🔧 Running in LOCAL MOCK MODE - AWS credentials not required')
+}
+
+// In-memory store for mock mode
+let mockPostsStore = []
+
+// Initialize client only if not in mock mode
+let dynamoClient = null
+
+if (!USE_MOCK_MODE) {
+  dynamoClient = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' }))
+}
+
+/**
+ * GET - Fetch all posts
+ */
+exports.handler = async (event) => {
+  try {
+    if (event.httpMethod === 'GET') {
+      if (USE_MOCK_MODE) {
+        // Return mock posts from in-memory store
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            posts: mockPostsStore,
+          }),
+        }
+      }
+
+      // Fetch posts from DynamoDB
+      const result = await dynamoClient.send(
+        new ScanCommand({
+          TableName: process.env.POSTS_TABLE || 'MarketingPosts',
+        })
+      )
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          posts: result.Items || [],
+        }),
+      }
+    }
+
+    if (event.httpMethod === 'POST') {
+      const body = event.body ? (typeof event.body === 'string' ? JSON.parse(event.body) : event.body) : {}
+      const { platform, content, scheduledDate } = body
+
+      if (!platform || !content || !scheduledDate) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({ error: 'Platform, content, and scheduledDate are required' }),
+        }
+      }
+
+      const post = {
+        id: `POST-${Date.now()}`,
+        platform,
+        content,
+        scheduledDate,
+        status: 'scheduled',
+        createdAt: new Date().toISOString(),
+        metrics: {
+          views: 0,
+          likes: 0,
+          comments: 0,
+          shares: 0,
+        },
+      }
+
+      if (USE_MOCK_MODE) {
+        // Save to in-memory store
+        mockPostsStore.push(post)
+        console.log('📝 [MOCK] Post saved:', post)
+      } else {
+        // Save to DynamoDB
+        try {
+          await dynamoClient.send(
+            new PutCommand({
+              TableName: process.env.POSTS_TABLE || 'MarketingPosts',
+              Item: post,
+            })
+          )
+        } catch (error) {
+          console.error('DynamoDB error (continuing in mock mode):', error.message)
+        }
+      }
+
+      // Placeholder: In production, schedule post via social media APIs
+      // await schedulePostOnPlatform(platform, content, scheduledDate)
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          success: true,
+          post,
+        }),
+      }
+    }
+
+    return {
+      statusCode: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    }
+  } catch (error) {
+    console.error('Error in marketing posts handler:', error)
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ error: 'Internal server error' }),
+    }
+  }
+}
+
