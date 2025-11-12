@@ -1,21 +1,41 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MessageSquare, BarChart3, Megaphone, ArrowRight, TrendingUp, Users, AlertCircle } from 'lucide-react'
 import StatsCard from '../components/StatsCard'
 import { useNotifications } from '../context/NotificationContext'
 import SupportAgentDemo from '../components/SupportAgentDemo'
+import CongratulationsModal from '../components/CongratulationsModal'
+import { useAuth } from '../context/AuthContext'
 
 const Dashboard = () => {
   const { showSuccess, showInfo } = useNotifications()
+  const { user } = useAuth()
+  const [showCongratulations, setShowCongratulations] = useState(false)
 
-  // Demo notifications on mount
+  // Check if first time visiting dashboard
   useEffect(() => {
-    const timer = setTimeout(() => {
-      showInfo('Welcome!', 'Your AI Automation Suite is ready. All agents are operational.')
-    }, 1000)
+    // Prevent any auto-scroll on mount
+    window.scrollTo(0, 0)
+    
+    const hasVisitedDashboard = localStorage.getItem(`dashboard_visited_${user.id}`)
+    
+    if (!hasVisitedDashboard && user.id) {
+      // First time visiting - show congratulations
+      const timer = setTimeout(() => {
+        setShowCongratulations(true)
+        localStorage.setItem(`dashboard_visited_${user.id}`, 'true')
+      }, 500)
 
-    return () => clearTimeout(timer)
-  }, [showInfo])
+      return () => clearTimeout(timer)
+    } else {
+      // Not first time - show regular welcome notification
+      const timer = setTimeout(() => {
+        showInfo('Welcome back!', 'Your AI Automation Suite is ready. All agents are operational.')
+      }, 1000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [user.id, showInfo])
   const agents = [
     {
       title: 'Customer Support Agent',
@@ -44,7 +64,11 @@ const Dashboard = () => {
   ]
 
   return (
-    <div className="space-y-4 md:space-y-6 lg:space-y-8">
+    <>
+      {showCongratulations && (
+        <CongratulationsModal onClose={() => setShowCongratulations(false)} />
+      )}
+      <div className="space-y-4 md:space-y-6 lg:space-y-8">
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-cyan-500 p-6 md:p-8 lg:p-12 shadow-2xl">
         {/* Pattern overlay */}
@@ -179,6 +203,7 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+    </>
   )
 }
 

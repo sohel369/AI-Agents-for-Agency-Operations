@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Calendar, Plus, Loader2, TrendingUp, Eye, Heart, MessageCircle, Share2, Edit2, Save, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Calendar, Plus, Loader2, TrendingUp, Eye, Heart, MessageCircle, Share2, Edit2, Save, X, Megaphone, Sparkles, ArrowRight } from 'lucide-react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useNotifications } from '../context/NotificationContext'
 
@@ -11,6 +11,7 @@ const MarketingAutomationAgent = () => {
   const [newPost, setNewPost] = useState({ platform: 'facebook', content: '', scheduledDate: '' })
   const [editingPost, setEditingPost] = useState(null)
   const [recommendations, setRecommendations] = useState(null)
+  const modalRef = useRef(null)
   const [metrics, setMetrics] = useState([
     { date: 'Mon', engagement: 120, reach: 450, clicks: 89 },
     { date: 'Tue', engagement: 190, reach: 520, clicks: 112 },
@@ -22,7 +23,6 @@ const MarketingAutomationAgent = () => {
   ])
 
   useEffect(() => {
-    // Load posts from localStorage (demo mode)
     const savedPosts = localStorage.getItem('marketingPosts')
     if (savedPosts) {
       try {
@@ -33,15 +33,31 @@ const MarketingAutomationAgent = () => {
     }
   }, [])
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowScheduleModal(false)
+      }
+    }
+
+    if (showScheduleModal) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.body.style.overflow = 'unset'
+    }
+  }, [showScheduleModal])
+
   const savePostsToStorage = (postsToSave) => {
     localStorage.setItem('marketingPosts', JSON.stringify(postsToSave))
   }
 
   const generatePostSuggestion = () => {
-    // Demo mode - generate simple suggestion
     setLoading(true)
     
-    // Simulate API delay
     setTimeout(() => {
       const suggestions = {
         facebook: "🎉 Exciting news! We're thrilled to share our latest updates with you. Stay tuned for more amazing content coming your way!",
@@ -59,12 +75,10 @@ const MarketingAutomationAgent = () => {
 
   const schedulePost = () => {
     if (!newPost.content || !newPost.scheduledDate) {
-      // Add notification to counter only (no popup)
       showError('Validation Error', 'Please fill in all fields')
       return
     }
 
-    // Demo mode - store locally
     const post = {
       id: `POST-${Date.now()}`,
       platform: newPost.platform,
@@ -87,12 +101,10 @@ const MarketingAutomationAgent = () => {
     setShowScheduleModal(false)
     setNewPost({ platform: 'facebook', content: '', scheduledDate: '' })
     
-    // Add notification to counter only (no popup)
     showSuccess('Post Scheduled', 'Your post has been scheduled successfully!')
   }
 
   const updatePost = (postId, updates) => {
-    // Demo mode - update locally
     const updatedPosts = posts.map((post) => {
       if (post.id === postId) {
         return {
@@ -108,7 +120,6 @@ const MarketingAutomationAgent = () => {
     savePostsToStorage(updatedPosts)
     setEditingPost(null)
     
-    // Add notification to counter only (no popup)
     showSuccess('Post Updated', 'Your post has been updated successfully!')
   }
 
@@ -123,10 +134,8 @@ const MarketingAutomationAgent = () => {
   }
 
   const getRecommendations = () => {
-    // Demo mode - generate simple recommendations
     setLoading(true)
     
-    // Simulate API delay
     setTimeout(() => {
       const demoRecommendations = `Based on your current engagement metrics, here are our recommendations:
 
@@ -152,15 +161,22 @@ Keep up the great work! 🚀`
   }
 
   const platformColors = {
-    facebook: 'bg-blue-500',
-    linkedin: 'bg-blue-700',
-    twitter: 'bg-sky-500',
+    facebook: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200' },
+    linkedin: { bg: 'bg-blue-700', text: 'text-blue-700', border: 'border-blue-300' },
+    twitter: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200' },
   }
 
+  const stats = [
+    { label: 'Total Posts', value: posts.length.toString(), icon: Megaphone, color: 'text-purple-500' },
+    { label: 'Scheduled', value: posts.filter(p => p.status === 'scheduled').length.toString(), icon: Calendar, color: 'text-blue-500' },
+    { label: 'Total Engagement', value: '2.4K', icon: TrendingUp, color: 'text-green-500' },
+    { label: 'Avg Reach', value: '650', icon: Eye, color: 'text-orange-500' },
+  ]
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 p-6 md:p-8 lg:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 p-6 sm:p-8 md:p-10 lg:p-12 shadow-2xl">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -168,45 +184,82 @@ Keep up the great work! 🚀`
           }}
         />
         <div className="relative">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 md:mb-4">Marketing Automation Agent</h1>
-          <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-2xl">
-            Schedule posts, generate content, and track engagement metrics across all platforms
-          </p>
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4">
+            <div className="p-2 sm:p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+              <Megaphone className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
+                Marketing Automation Agent
+              </h1>
+              <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-2xl">
+                Schedule posts, generate content, and track engagement metrics across all platforms
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div 
+              key={stat.label} 
+              className="group relative overflow-hidden rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-900/10 dark:to-pink-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <Icon className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 ${stat.color}`} />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <button
           onClick={() => setShowScheduleModal(true)}
-          className="flex-1 sm:flex-none group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-4 md:px-6 py-3 text-sm md:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          className="group relative overflow-hidden flex-1 sm:flex-none rounded-xl md:rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative flex items-center justify-center space-x-2">
+          <div className="relative flex items-center justify-center space-x-2 sm:space-x-3">
             <Plus className="h-5 w-5" />
             <span>Schedule Post</span>
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </button>
         <button
           onClick={getRecommendations}
           disabled={loading}
-          className="flex-1 sm:flex-none flex items-center justify-center space-x-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 md:px-6 py-3 text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 sm:flex-none flex items-center justify-center space-x-2 sm:space-x-3 rounded-xl md:rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <TrendingUp className="h-5 w-5" />
           )}
-          <span>Recommend Next Steps</span>
+          <span>Get Recommendations</span>
         </button>
       </div>
 
       {/* Recommendations */}
       {recommendations && (
-        <div className="rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-6 shadow-lg">
-          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">AI Recommendations</h2>
+        <div className="rounded-xl md:rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-5 md:p-6 shadow-lg animate-fade-in">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">AI Recommendations</h2>
+          </div>
           <div className="prose max-w-none dark:prose-invert">
-            <pre className="whitespace-pre-wrap rounded-xl bg-gray-50 dark:bg-gray-900/50 p-4 text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+            <pre className="whitespace-pre-wrap rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 p-4 sm:p-5 md:p-6 text-xs sm:text-sm md:text-base text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 leading-relaxed">
               {recommendations}
             </pre>
           </div>
@@ -214,57 +267,72 @@ Keep up the great work! 🚀`
       )}
 
       {/* Metrics Charts */}
-      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
-        <div className="rounded-xl md:rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-4 md:p-6 shadow-lg">
-          <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Engagement Trends</h2>
-          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Engagement Trends</h3>
+          <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
             <LineChart data={metrics}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" />
+              <XAxis dataKey="date" stroke="#6b7280" className="dark:stroke-gray-400" />
+              <YAxis stroke="#6b7280" className="dark:stroke-gray-400" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px'
+                }}
+              />
               <Legend />
-              <Line type="monotone" dataKey="engagement" stroke="#0ea5e9" strokeWidth={2} />
-              <Line type="monotone" dataKey="reach" stroke="#10b981" strokeWidth={2} />
+              <Line type="monotone" dataKey="engagement" stroke="#0ea5e9" strokeWidth={3} dot={{ fill: '#0ea5e9', r: 4 }} />
+              <Line type="monotone" dataKey="reach" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-xl md:rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 p-4 md:p-6 shadow-lg">
-          <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Clicks by Day</h2>
-          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+        <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Clicks by Day</h3>
+          <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
             <BarChart data={metrics}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" />
+              <XAxis dataKey="date" stroke="#6b7280" className="dark:stroke-gray-400" />
+              <YAxis stroke="#6b7280" className="dark:stroke-gray-400" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px'
+                }}
+              />
               <Legend />
-              <Bar dataKey="clicks" fill="#8b5cf6" />
+              <Bar dataKey="clicks" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Scheduled Posts */}
-      <div className="rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-purple-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 backdrop-blur-lg border border-purple-200/50 dark:border-purple-700/50 p-4 md:p-6 shadow-lg">
-        <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">Scheduled Posts</h2>
+      <div className="rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-purple-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-purple-900/20 backdrop-blur-lg border border-purple-200/50 dark:border-purple-700/50 p-4 sm:p-5 md:p-6 shadow-lg">
+        <h2 className="mb-4 sm:mb-6 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Scheduled Posts</h2>
         {posts.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">No scheduled posts. Create one to get started!</p>
+          <div className="text-center py-8 sm:py-12">
+            <Megaphone className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">No scheduled posts. Create one to get started!</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {posts.map((post) => (
               <div
                 key={post.id}
-                className="rounded-xl border border-purple-200/50 dark:border-purple-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 hover:bg-white dark:hover:bg-gray-800 transition-all hover:shadow-md"
+                className="rounded-xl border border-purple-200/50 dark:border-purple-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 sm:p-5 hover:bg-white dark:hover:bg-gray-800 transition-all hover:shadow-md"
               >
                 {editingPost?.id === post.id ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Platform</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platform</label>
                       <select
                         value={editingPost.platform}
                         onChange={(e) => setEditingPost({ ...editingPost, platform: e.target.value })}
-                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 sm:px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       >
                         <option value="facebook">Facebook</option>
                         <option value="linkedin">LinkedIn</option>
@@ -272,24 +340,24 @@ Keep up the great work! 🚀`
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
                       <textarea
                         value={editingPost.content}
                         onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
                         rows={4}
-                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 sm:px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scheduled Date & Time</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scheduled Date & Time</label>
                       <input
                         type="datetime-local"
                         value={editingPost.scheduledDate}
                         onChange={(e) => setEditingPost({ ...editingPost, scheduledDate: e.target.value })}
-                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 sm:px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex justify-end space-x-2 sm:space-x-3">
                       <button
                         onClick={() => setEditingPost(null)}
                         className="flex items-center space-x-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -308,15 +376,15 @@ Keep up the great work! 🚀`
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="mb-2 flex items-center space-x-2 flex-wrap">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="mb-2 sm:mb-3 flex items-center space-x-2 flex-wrap gap-2">
                         <span
-                          className={`rounded-lg px-3 py-1 text-xs font-semibold text-white shadow-sm ${platformColors[post.platform] || 'bg-gray-500'}`}
+                          className={`rounded-lg px-3 py-1 text-xs font-semibold text-white shadow-sm ${platformColors[post.platform]?.bg || 'bg-gray-500'}`}
                         >
-                          {post.platform}
+                          {post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}
                         </span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
                           {new Date(post.scheduledDate).toLocaleString()}
                         </span>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -329,21 +397,21 @@ Keep up the great work! 🚀`
                           {post.status}
                         </span>
                       </div>
-                      <p className="text-gray-900 dark:text-gray-100 mb-3">{post.content}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span className="flex items-center space-x-1">
+                      <p className="text-sm sm:text-base text-gray-900 dark:text-gray-100 mb-3 sm:mb-4 leading-relaxed">{post.content}</p>
+                      <div className="flex items-center space-x-4 sm:space-x-6 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <span className="flex items-center space-x-1.5">
                           <Eye className="h-4 w-4" />
                           <span>{post.metrics?.views || 0}</span>
                         </span>
-                        <span className="flex items-center space-x-1">
+                        <span className="flex items-center space-x-1.5">
                           <Heart className="h-4 w-4" />
                           <span>{post.metrics?.likes || 0}</span>
                         </span>
-                        <span className="flex items-center space-x-1">
+                        <span className="flex items-center space-x-1.5">
                           <MessageCircle className="h-4 w-4" />
                           <span>{post.metrics?.comments || 0}</span>
                         </span>
-                        <span className="flex items-center space-x-1">
+                        <span className="flex items-center space-x-1.5">
                           <Share2 className="h-4 w-4" />
                           <span>{post.metrics?.shares || 0}</span>
                         </span>
@@ -351,10 +419,10 @@ Keep up the great work! 🚀`
                     </div>
                     <button
                       onClick={() => handleEditPost(post)}
-                      className="ml-4 rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
+                      className="flex-shrink-0 rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 p-2 sm:p-2.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                       title="Edit post"
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   </div>
                 )}
@@ -367,16 +435,27 @@ Keep up the great work! 🚀`
       {/* Schedule Modal */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-xl md:rounded-2xl bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-800 dark:to-purple-900/20 p-4 md:p-6 shadow-2xl border border-purple-200/50 dark:border-purple-700/50 max-h-[90vh] overflow-y-auto">
-            <h2 className="mb-4 text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">Schedule New Post</h2>
+          <div 
+            ref={modalRef}
+            className="w-full max-w-2xl rounded-xl md:rounded-2xl bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-800 dark:to-purple-900/20 p-4 sm:p-6 md:p-8 shadow-2xl border border-purple-200/50 dark:border-purple-700/50 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">Schedule New Post</h2>
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Platform</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platform</label>
                 <select
                   value={newPost.platform}
                   onChange={(e) => setNewPost({ ...newPost, platform: e.target.value })}
-                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="facebook">Facebook</option>
                   <option value="linkedin">LinkedIn</option>
@@ -390,42 +469,43 @@ Keep up the great work! 🚀`
                   <button
                     onClick={generatePostSuggestion}
                     disabled={loading}
-                    className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent hover:from-purple-700 hover:to-pink-600 disabled:opacity-50 transition-all"
+                    className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent hover:from-purple-700 hover:to-pink-600 disabled:opacity-50 transition-all flex items-center space-x-1"
                   >
-                    {loading ? 'Generating...' : 'Generate with AI'}
+                    <Sparkles className="w-4 h-4" />
+                    <span>{loading ? 'Generating...' : 'Generate with AI'}</span>
                   </button>
                 </div>
                 <textarea
                   value={newPost.content}
                   onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                   rows={6}
-                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500"
+                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="Enter post content or generate with AI..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scheduled Date & Time</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scheduled Date & Time</label>
                 <input
                   type="datetime-local"
                   value={newPost.scheduledDate}
                   onChange={(e) => setNewPost({ ...newPost, scheduledDate: e.target.value })}
-                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="block w-full rounded-lg border border-purple-300 dark:border-purple-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
             </div>
 
-            <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setShowScheduleModal(false)}
-                className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 md:px-6 py-2 text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-5 sm:px-6 py-2.5 text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 onClick={schedulePost}
                 disabled={loading}
-                className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 px-4 md:px-6 py-2 text-sm md:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 px-5 sm:px-6 py-2.5 text-sm sm:text-base font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? 'Scheduling...' : 'Schedule Post'}
               </button>
@@ -438,4 +518,3 @@ Keep up the great work! 🚀`
 }
 
 export default MarketingAutomationAgent
-

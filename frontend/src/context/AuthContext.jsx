@@ -100,8 +100,13 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false)
     setUser(defaultUser)
+    // Clear all authentication and user-related data
     localStorage.removeItem('isAuthenticated')
     localStorage.removeItem('user')
+    // Note: We keep 'users' array for signup/login functionality
+    // Clear any other user-specific preferences if needed
+    // localStorage.removeItem('language') // Optional: clear language preference
+    // localStorage.removeItem('notifications') // Optional: clear notifications
   }
 
   const updateUser = (updates) => {

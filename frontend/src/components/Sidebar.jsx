@@ -19,16 +19,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { logout, user } = useAuth()
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/support', icon: MessageSquare, label: 'Support Agent' },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics Agent' },
-    { path: '/marketing', icon: Megaphone, label: 'Marketing Agent' },
-    { path: '/admin', icon: Settings, label: 'Admin Panel' },
+    { path: '/dashboard', icon: Home, label: 'Dashboard' },
+    { path: '/dashboard/support', icon: MessageSquare, label: 'Support Agent' },
+    { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics Agent' },
+    { path: '/dashboard/marketing', icon: Megaphone, label: 'Marketing Agent' },
+    { path: '/dashboard/admin', icon: Settings, label: 'Admin Panel' },
   ]
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (

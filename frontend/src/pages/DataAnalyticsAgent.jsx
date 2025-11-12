@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Download, Slack, Loader2, TrendingUp, Users, DollarSign, Activity } from 'lucide-react'
+import { Download, Slack, Loader2, TrendingUp, Users, DollarSign, Activity, BarChart3, Sparkles, ArrowRight } from 'lucide-react'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import axios from 'axios'
 
 const DataAnalyticsAgent = () => {
@@ -85,16 +86,25 @@ const DataAnalyticsAgent = () => {
   }
 
   const stats = [
-    { label: 'Total Customers', value: '12,345', icon: Users, color: 'text-blue-600' },
-    { label: 'Revenue', value: '$245,678', icon: DollarSign, color: 'text-green-600' },
-    { label: 'Growth Rate', value: '+12.5%', icon: TrendingUp, color: 'text-purple-600' },
-    { label: 'Active Users', value: '8,901', icon: Activity, color: 'text-orange-600' },
+    { label: 'Total Customers', value: '12,345', icon: Users, color: 'text-blue-600', bgColor: 'from-blue-500 to-cyan-500' },
+    { label: 'Revenue', value: '$245,678', icon: DollarSign, color: 'text-green-600', bgColor: 'from-green-500 to-emerald-500' },
+    { label: 'Growth Rate', value: '+12.5%', icon: TrendingUp, color: 'text-purple-600', bgColor: 'from-purple-500 to-pink-500' },
+    { label: 'Active Users', value: '8,901', icon: Activity, color: 'text-orange-600', bgColor: 'from-orange-500 to-red-500' },
+  ]
+
+  const chartData = [
+    { month: 'Jan', customers: 12000, revenue: 200000 },
+    { month: 'Feb', customers: 13500, revenue: 220000 },
+    { month: 'Mar', customers: 15000, revenue: 245000 },
+    { month: 'Apr', customers: 14200, revenue: 235000 },
+    { month: 'May', customers: 16000, revenue: 260000 },
+    { month: 'Jun', customers: 17500, revenue: 280000 },
   ]
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-green-600 via-green-500 to-emerald-500 p-6 md:p-8 lg:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-green-600 via-green-500 to-emerald-500 p-6 sm:p-8 md:p-10 lg:p-12 shadow-2xl">
         <div 
           className="absolute inset-0 opacity-20"
           style={{
@@ -102,25 +112,40 @@ const DataAnalyticsAgent = () => {
           }}
         />
         <div className="relative">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4">Data Analytics Agent</h1>
-          <p className="text-base md:text-lg text-white/90 max-w-2xl">
-            Analyze CRM data and generate actionable insights using AI
-          </p>
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4">
+            <div className="p-2 sm:p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+              <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
+                Data Analytics Agent
+              </h1>
+              <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-2xl">
+                Analyze CRM data and generate actionable insights using AI
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
-            <div key={stat.label} className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 md:p-6 shadow-lg hover:shadow-xl transition-all">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
-                  <p className="mt-1 md:mt-2 text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <div 
+              key={stat.label} 
+              className="group relative overflow-hidden rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgColor} opacity-0 group-hover:opacity-5 transition-opacity`} />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${stat.bgColor} shadow-md`}>
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+                  </div>
                 </div>
-                <Icon className={`h-6 w-6 md:h-8 md:w-8 flex-shrink-0 ${stat.color}`} />
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
               </div>
             </div>
           )
@@ -128,23 +153,24 @@ const DataAnalyticsAgent = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <button
           onClick={analyzeData}
           disabled={loading}
-          className="flex-1 sm:flex-none group relative overflow-hidden rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 px-4 md:px-6 py-3 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          className="group relative overflow-hidden flex-1 sm:flex-none rounded-xl md:rounded-2xl bg-gradient-to-r from-green-600 to-emerald-500 px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative flex items-center justify-center space-x-2">
+          <div className="relative flex items-center justify-center space-x-2 sm:space-x-3">
             {loading ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm md:text-base">Analyzing...</span>
+                <span className="text-sm sm:text-base">Analyzing...</span>
               </>
             ) : (
               <>
-                <TrendingUp className="h-5 w-5" />
-                <span className="text-sm md:text-base">Generate AI Insights</span>
+                <Sparkles className="h-5 w-5" />
+                <span className="text-sm sm:text-base">Generate AI Insights</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </div>
@@ -152,28 +178,85 @@ const DataAnalyticsAgent = () => {
         <button
           onClick={fetchData}
           disabled={loading}
-          className="flex-1 sm:flex-none rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 md:px-6 py-3 text-sm md:text-base font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 sm:flex-none rounded-xl md:rounded-2xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 sm:px-6 md:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Refresh Data
         </button>
       </div>
 
+      {/* Charts Section */}
+      {data && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Customer Growth</h3>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" />
+                <XAxis dataKey="month" stroke="#6b7280" className="dark:stroke-gray-400" />
+                <YAxis stroke="#6b7280" className="dark:stroke-gray-400" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="customers" 
+                  stroke="#0ea5e9" 
+                  strokeWidth={3}
+                  dot={{ fill: '#0ea5e9', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Revenue Trends</h3>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" />
+                <XAxis dataKey="month" stroke="#6b7280" className="dark:stroke-gray-400" />
+                <YAxis stroke="#6b7280" className="dark:stroke-gray-400" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Insights Display */}
       {insights && (
-        <div className="rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 md:p-6 shadow-lg">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">AI-Generated Insights</h2>
-            <div className="flex flex-col sm:flex-row gap-2">
+        <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">AI-Generated Insights</h2>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={exportToText}
-                className="flex items-center justify-center space-x-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="flex items-center justify-center space-x-2 rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-md"
               >
                 <Download className="h-4 w-4" />
                 <span>Download</span>
               </button>
               <button
                 onClick={sendToSlack}
-                className="flex items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all"
+                className="flex items-center justify-center space-x-2 rounded-lg md:rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
               >
                 <Slack className="h-4 w-4" />
                 <span>Send to Slack</span>
@@ -181,7 +264,7 @@ const DataAnalyticsAgent = () => {
             </div>
           </div>
           <div className="prose max-w-none dark:prose-invert">
-            <pre className="whitespace-pre-wrap rounded-lg bg-gray-50 dark:bg-gray-900/50 p-3 md:p-4 text-xs md:text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <pre className="whitespace-pre-wrap rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 p-4 sm:p-5 md:p-6 text-xs sm:text-sm md:text-base text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 overflow-x-auto leading-relaxed">
               {insights}
             </pre>
           </div>
@@ -189,11 +272,11 @@ const DataAnalyticsAgent = () => {
       )}
 
       {/* Data Preview */}
-      {data && (
-        <div className="rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 md:p-6 shadow-lg">
-          <h2 className="mb-4 text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Data Preview</h2>
+      {data && !insights && (
+        <div className="rounded-xl md:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 sm:p-5 md:p-6 shadow-lg">
+          <h2 className="mb-4 sm:mb-6 text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Data Preview</h2>
           <div className="overflow-x-auto">
-            <pre className="rounded-lg bg-gray-50 dark:bg-gray-900/50 p-3 md:p-4 text-xs text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+            <pre className="rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 p-4 sm:p-5 text-xs sm:text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
               {JSON.stringify(data, null, 2)}
             </pre>
           </div>
@@ -204,4 +287,3 @@ const DataAnalyticsAgent = () => {
 }
 
 export default DataAnalyticsAgent
-

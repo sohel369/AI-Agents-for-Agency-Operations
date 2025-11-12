@@ -40,7 +40,7 @@ const Navbar = ({ onMenuClick }) => {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
     setShowProfileMenu(false)
   }
 
@@ -277,7 +277,7 @@ const Navbar = ({ onMenuClick }) => {
 
                 <button
                   onClick={() => {
-                    navigate('/admin')
+                    navigate('/dashboard/admin')
                     setShowProfileMenu(false)
                   }}
                   className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/30 dark:hover:to-cyan-900/30 transition-all duration-200 group"

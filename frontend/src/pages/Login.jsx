@@ -16,7 +16,7 @@ const Login = () => {
     const result = login(email, password)
     
     if (result.success) {
-      navigate('/')
+      navigate('/dashboard')
     } else {
       setError(result.error || 'Invalid credentials. Please try again.')
     }
