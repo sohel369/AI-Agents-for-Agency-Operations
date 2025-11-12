@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Settings,
   Menu,
-  Bell
+  Bell,
+  Sparkles
 } from 'lucide-react'
 
 const Navbar = ({ onMenuClick }) => {
@@ -106,32 +107,40 @@ const Navbar = ({ onMenuClick }) => {
   const currentLanguage = languages.find(lang => lang.code === selectedLanguage) || languages[0]
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 shadow-lg shadow-gray-900/5">
-      <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+    <header className="sticky top-0 z-30 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 shadow-lg shadow-gray-900/5 dark:shadow-gray-950/20">
+      <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 md:px-6">
         {/* Left: Mobile menu + Title */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0 flex-1">
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-br hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/20 dark:hover:to-cyan-900/20 transition-all duration-200 active:scale-95"
+            aria-label="Toggle menu"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent">
-            AI Automation Suite
-          </h2>
+          <div className="flex items-center space-x-2 min-w-0">
+            <div className="hidden sm:block p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 shadow-md">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            </div>
+            <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-cyan-500 bg-clip-text text-transparent truncate">
+              <span className="hidden sm:inline">AI Automation Suite</span>
+              <span className="sm:hidden">AI Suite</span>
+            </h2>
+          </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3 flex-shrink-0">
           {/* Notifications */}
           <div className="relative" ref={notificationPanelRef}>
             <button 
               onClick={handleNotificationClick}
-              className="relative p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="relative p-2 sm:p-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-br hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/20 dark:hover:to-cyan-900/20 transition-all duration-200 active:scale-95 group"
+              aria-label="Notifications"
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold ring-2 ring-white dark:ring-gray-900 animate-pulse">
+                <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 flex items-center justify-center min-w-[18px] sm:min-w-[20px] h-[18px] sm:h-5 px-1 sm:px-1.5 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] sm:text-xs font-bold ring-2 ring-white dark:ring-gray-900 animate-pulse shadow-lg">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -140,16 +149,16 @@ const Navbar = ({ onMenuClick }) => {
             {/* Notification Panel */}
             {showNotificationPanel && (
               <div 
-                className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-50 max-h-96 overflow-hidden flex flex-col backdrop-blur-xl"
+                className="absolute right-0 mt-2 w-[calc(100vw-3rem)] sm:w-80 max-w-sm rounded-2xl bg-white/95 dark:bg-gray-800/95 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl z-50 max-h-[calc(100vh-5rem)] overflow-hidden flex flex-col backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200"
               >
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-primary-50 to-cyan-50 dark:from-primary-900/20 dark:to-cyan-900/20">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                <div className="p-3 sm:p-4 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between bg-gradient-to-r from-primary-50/80 to-cyan-50/80 dark:from-primary-900/30 dark:to-cyan-900/30 backdrop-blur-sm">
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">Notifications</h3>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       addDemoNotification()
                     }}
-                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium"
+                    className="text-xs sm:text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold px-2 py-1 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                   >
                     Add Demo
                   </button>
@@ -188,19 +197,20 @@ const Navbar = ({ onMenuClick }) => {
           </div>
 
           {/* Language Selector */}
-          <div className="relative hidden md:block" ref={languageMenuRef}>
+          <div className="relative hidden sm:block" ref={languageMenuRef}>
             <button
               onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-              className="flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center space-x-1.5 sm:space-x-2 rounded-xl px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gradient-to-br hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/20 dark:hover:to-cyan-900/20 transition-all duration-200 active:scale-95 group"
+              aria-label="Language selector"
             >
-              <Globe className="h-4 w-4" />
-              <span className="hidden lg:inline">{currentLanguage.flag}</span>
-              <span className="hidden xl:inline">{currentLanguage.name}</span>
-              <ChevronDown className="h-4 w-4" />
+              <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+              <span className="hidden md:inline">{currentLanguage.flag}</span>
+              <span className="hidden lg:inline ml-1">{currentLanguage.name}</span>
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" />
             </button>
 
             {showLanguageMenu && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl py-2 z-50 backdrop-blur-xl">
+              <div className="absolute right-0 mt-2 w-48 sm:w-52 rounded-2xl bg-white/95 dark:bg-gray-800/95 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl py-2 z-50 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
                 {languages.map((lang) => (
                   <button
                     key={lang.code}
@@ -222,13 +232,13 @@ const Navbar = ({ onMenuClick }) => {
           {/* Dark Mode Toggle */}
           <button
             onClick={handleThemeToggle}
-            className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 sm:p-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-br hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/20 dark:hover:to-cyan-900/20 transition-all duration-200 active:scale-95 group"
             aria-label="Toggle dark mode"
           >
             {darkMode ? (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-180 transition-transform duration-500" />
             ) : (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-12 transition-transform duration-300" />
             )}
           </button>
 
@@ -236,30 +246,31 @@ const Navbar = ({ onMenuClick }) => {
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center space-x-1.5 sm:space-x-2 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gradient-to-br hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/20 dark:hover:to-cyan-900/20 transition-all duration-200 active:scale-95 group"
+              aria-label="User menu"
             >
               {user.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.name || 'User'}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-primary-500/30"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-primary-500/30 group-hover:border-primary-500/60 transition-colors shadow-md"
                 />
               ) : (
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white border-2 border-primary-500/30">
-                  <User className="h-4 w-4" />
+                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white border-2 border-primary-500/30 group-hover:border-primary-500/60 group-hover:shadow-lg transition-all shadow-md">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
               )}
-              <span className="hidden md:inline font-medium">{user.name || 'User'}</span>
-              <ChevronDown className="h-4 w-4" />
+              <span className="hidden lg:inline font-semibold truncate max-w-[100px]">{user.name || 'User'}</span>
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" />
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl py-2 z-50 backdrop-blur-xl">
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              <div className="absolute right-0 mt-2 w-56 sm:w-64 rounded-2xl bg-white/95 dark:bg-gray-800/95 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl py-2 z-50 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-primary-50/50 to-cyan-50/50 dark:from-primary-900/20 dark:to-cyan-900/20">
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
                     {user.name || 'User'}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                     {user.email || 'No email'}
                   </p>
                 </div>
@@ -269,17 +280,17 @@ const Navbar = ({ onMenuClick }) => {
                     navigate('/admin')
                     setShowProfileMenu(false)
                   }}
-                  className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-primary-50 hover:to-cyan-50 dark:hover:from-primary-900/30 dark:hover:to-cyan-900/30 transition-all duration-200 group"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
                   <span>Settings</span>
                 </button>
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/30 dark:hover:to-pink-900/30 transition-all duration-200 group"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   <span>Logout</span>
                 </button>
               </div>

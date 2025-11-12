@@ -99,7 +99,7 @@ const CustomerSupportAgent = () => {
                       </p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                      <span className={`px-3 md:px-4 py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold backdrop-blur-lg text-center ${
+                      <span className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg md:rounded-xl text-xs sm:text-sm font-semibold backdrop-blur-lg text-center whitespace-nowrap ${
                         demoMode 
                           ? 'bg-white/20 text-white border border-white/30' 
                           : 'bg-green-500/20 text-white border border-green-400/30'
@@ -110,10 +110,11 @@ const CustomerSupportAgent = () => {
                         onClick={() => {
                           showInfo('Demo Mode', 'Support Agent is running in demo mode with local saved answers. No backend connection required.')
                         }}
-                        className="px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg md:rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 transition-all"
+                        className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg md:rounded-xl bg-white/20 backdrop-blur-lg text-white border border-white/30 hover:bg-white/30 active:scale-95 transition-all duration-200 whitespace-nowrap"
                         title="Demo Mode - Uses local saved answer"
                       >
-                        Demo Mode Active
+                        <span className="hidden sm:inline">Demo Mode Active</span>
+                        <span className="sm:hidden">Info</span>
                       </button>
             </div>
           </div>
@@ -122,18 +123,18 @@ const CustomerSupportAgent = () => {
 
       {ticketStatus && (
         <div
-          className={`mb-4 flex items-center space-x-2 rounded-lg p-4 ${
+          className={`mb-4 flex items-center space-x-2 sm:space-x-3 rounded-lg md:rounded-xl p-3 sm:p-4 ${
             ticketStatus.type === 'success'
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-              : 'bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300'
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800/50'
+              : 'bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50'
           }`}
         >
           {ticketStatus.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
           ) : (
-            <AlertCircle className="h-5 w-5" />
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
           )}
-          <span className="text-sm font-medium">{ticketStatus.message}</span>
+          <span className="text-xs sm:text-sm font-medium">{ticketStatus.message}</span>
         </div>
       )}
 
@@ -148,28 +149,28 @@ const CustomerSupportAgent = () => {
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                className={`max-w-[85%] sm:max-w-[80%] rounded-lg md:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 ${
                   message.sender === 'user'
-                    ? 'bg-primary-600 text-white'
+                    ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md'
                     : message.isError
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600'
                 }`}
               >
-                <p className="whitespace-pre-wrap">{message.text}</p>
-                <div className="mt-2 flex items-center space-x-2">
+                <p className="whitespace-pre-wrap text-sm sm:text-base break-words">{message.text}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {message.demoMode && (
-                    <span className="px-2 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 whitespace-nowrap">
                       Demo Response
                     </span>
                   )}
                   {message.confidence !== undefined && (
-                    <span className="text-xs opacity-75">
+                    <span className="text-[10px] sm:text-xs opacity-75 whitespace-nowrap">
                       Confidence: {(message.confidence * 100).toFixed(1)}%
                     </span>
                   )}
-                  <span className="text-xs opacity-75">
-                    {message.timestamp.toLocaleTimeString()}
+                  <span className="text-[10px] sm:text-xs opacity-75 whitespace-nowrap">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
@@ -177,8 +178,11 @@ const CustomerSupportAgent = () => {
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-lg bg-gray-100 dark:bg-gray-700 px-4 py-2">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-600 dark:text-gray-300" />
+              <div className="rounded-lg md:rounded-xl bg-gray-100 dark:bg-gray-700 px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 dark:border-gray-600">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-gray-600 dark:text-gray-300" />
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Agent is typing...</span>
+                </div>
               </div>
             </div>
           )}
@@ -186,27 +190,31 @@ const CustomerSupportAgent = () => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex space-x-2">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+          <div className="flex gap-2 sm:gap-3">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+              className="flex-1 rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 dark:placeholder-gray-500 transition-all"
               disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="rounded-lg bg-primary-600 px-6 py-2 text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 px-4 sm:px-6 py-2.5 sm:py-3 text-white font-semibold transition-all duration-200 hover:from-primary-700 hover:to-primary-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-primary-600 disabled:hover:to-primary-500 shadow-lg hover:shadow-xl active:scale-95 flex-shrink-0 min-w-[44px] sm:min-w-[56px] flex items-center justify-center"
+              aria-label="Send message"
             >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                {loading ? (
+                  <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-0.5 transition-transform" />
+                )}
+              </div>
             </button>
           </div>
         </div>

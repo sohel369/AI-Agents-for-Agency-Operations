@@ -94,7 +94,7 @@ const SupportAgentDemo = ({ demoMode = true }) => {
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-xl px-4 py-3 shadow-sm ${
+              className={`max-w-[85%] sm:max-w-[80%] rounded-lg md:rounded-xl px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${
                 message.sender === 'user'
                   ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white'
                   : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
@@ -108,8 +108,8 @@ const SupportAgentDemo = ({ demoMode = true }) => {
                   </span>
                 </div>
               )}
-              <p className="whitespace-pre-wrap text-sm">{message.text}</p>
-              <p className="mt-1 text-xs opacity-70">
+              <p className="whitespace-pre-wrap text-sm sm:text-base break-words">{message.text}</p>
+              <p className="mt-1.5 text-[10px] sm:text-xs opacity-70">
                 {message.timestamp.toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -138,26 +138,38 @@ const SupportAgentDemo = ({ demoMode = true }) => {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-xl">
-        <div className="flex space-x-2">
+      <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-xl">
+        <div className="flex gap-2 sm:gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors placeholder-gray-400 dark:placeholder-gray-500"
+            className="flex-1 rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors placeholder-gray-400 dark:placeholder-gray-500"
             disabled={loading}
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="rounded-lg bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-2 text-white font-medium transition-all hover:from-primary-700 hover:to-primary-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-primary-600 disabled:hover:to-primary-500 shadow-lg hover:shadow-xl"
+            className="group relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 px-4 sm:px-6 py-2.5 sm:py-3 text-white font-semibold transition-all duration-200 hover:from-primary-700 hover:to-primary-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-primary-600 disabled:hover:to-primary-500 shadow-lg hover:shadow-xl active:scale-95 flex-shrink-0 min-w-[44px] sm:min-w-[56px] flex items-center justify-center"
+            aria-label="Send message"
           >
-            <Send className="h-5 w-5" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative">
+              {loading ? (
+                <div className="flex space-x-1">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              ) : (
+                <Send className="h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-0.5 transition-transform" />
+              )}
+            </div>
           </button>
         </div>
-        <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-[10px] sm:text-xs text-center text-gray-500 dark:text-gray-400 px-2">
           💡 Demo Mode: All messages receive the same pre-configured response
         </p>
       </div>

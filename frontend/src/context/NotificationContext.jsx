@@ -118,13 +118,13 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
   const getIcon = (type) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5" />
+        return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
       case 'error':
-        return <AlertCircle className="h-5 w-5" />
+        return <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
       case 'warning':
-        return <AlertTriangle className="h-5 w-5" />
+        return <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
       default:
-        return <Info className="h-5 w-5" />
+        return <Info className="h-4 w-4 sm:h-5 sm:w-5" />
     }
   }
 
@@ -142,28 +142,28 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
   }
 
   return (
-    <div className="fixed top-20 right-4 z-50 space-y-3 w-full max-w-sm">
+    <div className="fixed top-16 sm:top-20 right-2 sm:right-4 left-2 sm:left-auto z-50 space-y-2 sm:space-y-3 w-auto sm:w-full max-w-[calc(100vw-1rem)] sm:max-w-sm">
       {notifications.map((notification) => (
         <div
           key={notification.id}
           onClick={() => !notification.read && onMarkAsRead(notification.id)}
-          className={`rounded-xl border p-4 shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer transition-all hover:shadow-xl ${
+          className={`rounded-lg md:rounded-xl border p-3 sm:p-4 shadow-lg backdrop-blur-sm animate-fade-in cursor-pointer transition-all hover:shadow-xl active:scale-[0.98] ${
             notification.read ? 'opacity-75' : ''
           } ${getStyles(notification.type)}`}
         >
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             <div className="flex-shrink-0 mt-0.5">
               {getIcon(notification.type)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm font-semibold">{notification.title}</p>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <p className="text-xs sm:text-sm font-semibold break-words">{notification.title}</p>
                 {!notification.read && (
-                  <span className="h-2 w-2 rounded-full bg-current opacity-75 animate-pulse" />
+                  <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-current opacity-75 animate-pulse flex-shrink-0" />
                 )}
               </div>
               {notification.message && (
-                <p className="mt-1 text-sm opacity-90">{notification.message}</p>
+                <p className="mt-1 text-xs sm:text-sm opacity-90 break-words leading-relaxed">{notification.message}</p>
               )}
             </div>
             <button
@@ -171,10 +171,10 @@ const NotificationContainer = ({ notifications, onRemove, onMarkAsRead }) => {
                 e.stopPropagation()
                 onRemove(notification.id)
               }}
-              className="flex-shrink-0 p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              className="flex-shrink-0 p-1.5 sm:p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 active:bg-black/20 dark:active:bg-white/20 transition-colors min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
               aria-label="Close notification"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 sm:h-4 sm:w-4" />
             </button>
           </div>
         </div>
