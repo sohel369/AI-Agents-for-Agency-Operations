@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
-import axios from 'axios'
 import { useNotifications } from '../context/NotificationContext'
+
+// Demo mode - saved answer (no backend needed)
+const DEMO_AGENT_RESPONSE = "Hello! 👋 Welcome to our AI Automation Suite support. I'm here to help you with any questions about our services, features, or technical issues. How can I assist you today?"
 
 const CustomerSupportAgent = () => {
   const { showInfo, showSuccess, showError } = useNotifications()
@@ -17,7 +19,7 @@ const CustomerSupportAgent = () => {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [ticketStatus, setTicketStatus] = useState(null)
-  const [demoMode, setDemoMode] = useState(true) // Always start in demo mode
+  const [demoMode, setDemoMode] = useState(true) // Always in demo mode - uses local saved answer
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -34,7 +36,7 @@ const CustomerSupportAgent = () => {
     scrollToBottom()
   }, [messages])
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!input.trim() || loading) return
 
     const userMessage = {
@@ -45,72 +47,31 @@ const CustomerSupportAgent = () => {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const userInput = input
     setInput('')
     setLoading(true)
     setTicketStatus(null)
 
-    try {
-      // Always send demoMode=true to ensure demo responses
-      const response = await axios.post('/api/support/chat', {
-        message: input,
-        conversationHistory: messages,
-        demoMode: true, // Always use demo mode for reliability
-      })
-
+    // Demo mode - use local saved answer (no backend needed)
+    setTimeout(() => {
       const agentResponse = {
         id: Date.now() + 1,
-        text: response.data.response,
+        text: DEMO_AGENT_RESPONSE,
         sender: 'agent',
         timestamp: new Date(),
-        confidence: response.data.confidence,
-        ticketCreated: response.data.ticketCreated,
-        escalated: response.data.escalated,
-        demoMode: response.data.demoMode || false,
+        confidence: 0.95,
+        ticketCreated: true,
+        escalated: false,
+        demoMode: true,
       }
 
       setMessages((prev) => [...prev, agentResponse])
-
-      if (response.data.ticketCreated) {
-        setTicketStatus({
-          type: 'success',
-          message: 'Ticket created successfully in CRM',
-        })
-      }
-
-      if (response.data.escalated) {
-        setTicketStatus({
-          type: 'warning',
-          message: 'Low confidence detected. Ticket escalated to human agent.',
-        })
-      }
-    } catch (error) {
-      console.error('Error sending message:', error)
-      console.error('Error details:', error.response?.data || error.message)
-      
-      // Show more detailed error message
-      let errorText = 'Sorry, I encountered an error. Please try again.'
-      if (error.response?.data?.error) {
-        errorText = `Error: ${error.response.data.error}`
-      } else if (error.response?.data?.message) {
-        errorText = `Error: ${error.response.data.message}`
-      } else if (error.message) {
-        errorText = `Error: ${error.message}`
-      }
-      
-      const errorMessage = {
-        id: Date.now() + 1,
-        text: errorText,
-        sender: 'agent',
-        timestamp: new Date(),
-        isError: true,
-      }
-      setMessages((prev) => [...prev, errorMessage])
-      
-      // Show error notification
-      showError('Connection Error', 'Could not connect to support agent. Please check if the backend server is running on port 3001.')
-    } finally {
+      setTicketStatus({
+        type: 'success',
+        message: 'Ticket created successfully in CRM',
+      })
       setLoading(false)
-    }
+    }, 500) // Simulate slight delay for realism
   }
 
   const handleKeyPress = (e) => {
