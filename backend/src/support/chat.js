@@ -315,8 +315,9 @@ exports.handler = async (event) => {
       }
     }
 
-    // Check if demo mode is enabled (default to true in mock mode)
-    const useDemoMode = demoMode !== false && (USE_MOCK_MODE || demoMode === true)
+    // Check if demo mode is enabled (default to true in mock mode or when explicitly requested)
+    // If demoMode is explicitly false, use AI. Otherwise, default to demo mode for better UX
+    const useDemoMode = demoMode === true || (demoMode !== false && USE_MOCK_MODE)
 
     if (useDemoMode) {
       console.log('🎭 Using DEMO MODE - Providing predefined responses')

@@ -12,8 +12,16 @@
     "install:backend": "cd backend && npm install",
     "install:all": "npm run install:frontend && npm run install:backend"
   },
-  "keywords": ["aws", "bedrock", "react", "lambda", "ai-agents"],
+  "keywords": [
+    "aws",
+    "bedrock",
+    "react",
+    "lambda",
+    "ai-agents"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^7.2.2"
+  }
 }
-

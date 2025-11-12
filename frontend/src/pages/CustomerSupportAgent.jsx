@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import axios from 'axios'
+import { useNotifications } from '../context/NotificationContext'
 
 const CustomerSupportAgent = () => {
+  const { showInfo, showSuccess } = useNotifications()
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -17,6 +19,12 @@ const CustomerSupportAgent = () => {
   const [ticketStatus, setTicketStatus] = useState(null)
   const [demoMode, setDemoMode] = useState(true)
   const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    if (demoMode) {
+      showInfo('Demo Mode Active', 'You are using demo responses. Switch to AI Mode for real AI-powered responses.')
+    }
+  }, [demoMode, showInfo])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -114,7 +122,13 @@ const CustomerSupportAgent = () => {
               {demoMode ? '🎭 Demo Mode' : '🤖 AI Mode'}
             </span>
             <button
-              onClick={() => setDemoMode(!demoMode)}
+              onClick={() => {
+                setDemoMode(!demoMode)
+                showSuccess(
+                  'Mode Changed',
+                  `Switched to ${!demoMode ? 'Demo' : 'AI'} Mode`
+                )
+              }}
               className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               {demoMode ? 'Switch to AI Mode' : 'Switch to Demo Mode'}

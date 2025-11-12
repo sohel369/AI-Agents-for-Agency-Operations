@@ -9,6 +9,7 @@ import MarketingAutomationAgent from './pages/MarketingAutomationAgent'
 import AdminPanel from './pages/AdminPanel'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { NotificationProvider } from './context/NotificationContext'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -42,11 +43,13 @@ function AppRoutes() {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </NotificationProvider>
     </ThemeProvider>
   )
 }
